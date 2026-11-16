@@ -45,3 +45,31 @@ test("redacts bearer tokens and query strings in diagnostics",()=>{
   assert.equal(clean.includes("abc123"),false);
   assert.equal(clean.includes("secret"),false);
 });
+
+test("page-script callsite outranks extension-controlled observer context",()=>{
+  const result=classifyDiagnostic("console-warning",{level:"warning",message:"TraceCue fixture warning"},{
+    stackUrl:"http://127.0.0.1:5173/qa-fixture.html",
+    contextOrigin:"chrome-extension://injected-extension",isIsolated:true,
+    pageUrl:"http://127.0.0.1:5173/[id]"
+  });
+  assert.equal(result.kind,"console-warning");
+  assert.equal(result.data.sourceHint,"page-script");
+  assert.equal(result.data.sourceConfidence,"callsite");
+});
+test("fixture console error remains an application log with page callsite",()=>{
+  const result=classifyDiagnostic("console-error",{level:"error",message:"TraceCue fixture HTTP 404"},{
+    stackUrl:"http://127.0.0.1:5173/qa-fixture.html",
+    contextOrigin:"chrome-extension://injected-extension",
+    pageUrl:"http://127.0.0.1:5173/[id]"
+  });
+  assert.equal(result.kind,"console-error");
+});
+test("extension callsite remains environment even when context is page origin",()=>{
+  const result=classifyDiagnostic("console-warning",{message:"Extension warning"},{
+    stackUrl:"chrome-extension://injected-extension/inpage.js",
+    contextOrigin:"http://127.0.0.1:5173",
+    pageUrl:"http://127.0.0.1:5173/qa-fixture.html"
+  });
+  assert.equal(result.kind,"environment-diagnostic");
+  assert.equal(result.data.sourceHint,"browser-extension");
+});

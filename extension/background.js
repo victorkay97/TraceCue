@@ -212,7 +212,7 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
       record("network-failure",{
         status:params.response.status,method:request?.method || "?",
         url:request?.url || cleanUrl(rawUrl)
-      },{url:request?.rawExtension ? "chrome-extension://recorded" : rawUrl});
+      },{url:request?.rawExtension ? "chrome-extension://recorded" : rawUrl,pageUrl:session.url});
     }
   } else if (method === "Network.loadingFailed") {
     const request = session.requests.get(params.requestId);
@@ -220,7 +220,7 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
     record("network-failure",{
       method:request?.method || "?",url:request?.url || "[unknown]",
       message:scrub(params.errorText)
-    },{url:request?.rawExtension ? "chrome-extension://recorded" : ""});
+    },{url:request?.rawExtension ? "chrome-extension://recorded" : "",pageUrl:session.url});
   } else if (method === "Runtime.exceptionThrown") {
     const detail = params.exceptionDetails || {};
     const context = session.contexts.get(detail.executionContextId);
@@ -230,7 +230,8 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
       message:scrub(detail.text),
       url:cleanUrl(originUrl)
     },{url:detail.url,stackUrl,contextOrigin:context?.origin,
-       contextName:context?.name,isIsolated:context?.isIsolated});
+       contextName:context?.name,isIsolated:context?.isIsolated,
+       pageUrl:session.url});
   } else if (method === "Runtime.consoleAPICalled" &&
              ["error","warning","warn","assert"].includes(params.type)) {
     const context = session.contexts.get(params.executionContextId);
@@ -240,7 +241,8 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
       level:params.type,
       message:scrub((params.args || []).map(x=>x.value ?? x.description ?? "").join(" "))
     },{stackUrl,contextOrigin:context?.origin,
-       contextName:context?.name,isIsolated:context?.isIsolated});
+       contextName:context?.name,isIsolated:context?.isIsolated,
+       pageUrl:session.url});
   } else if (method === "Log.entryAdded" &&
              ["error","warning","warn"].includes(params.entry?.level)) {
     const entry = params.entry;
@@ -249,6 +251,6 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
     record(kind,{
       level:entry.level,message:scrub(entry.text),
       url:entry.url ? cleanUrl(entry.url) : undefined
-    },{url:entry.url,stackUrl});
+    },{url:entry.url,stackUrl,pageUrl:session.url});
   }
 });

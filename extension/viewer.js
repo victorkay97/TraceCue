@@ -1,4 +1,4 @@
-import { redactDiagnosticText } from "./diagnostics.js";
+import { redactDiagnosticText, safeEvidenceUrl } from "./diagnostics.js";
 // Local extension session viewer. Never fetches from remote hosts.
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get("id");
@@ -166,11 +166,16 @@ function download(blob,name) {
 $("saveVideo").disabled = !videoBlob;
 $("saveVideo").addEventListener("click",()=>videoBlob && download(videoBlob,id + ".webm"));
 // Sanitize copies on export, including reports captured by older TraceCue builds.
-function safeExport(value) {
-  if (typeof value === "string") return redactDiagnosticText(value,2500);
-  if (Array.isArray(value)) return value.map(safeExport);
+function safeExport(value,key="") {
+  if (typeof value === "string") {
+    if (["id","schema","kind","sourceHint","sourceConfidence","originalKind","level","platform"].includes(key))
+      return value;
+    if (key === "url") return safeEvidenceUrl(value);
+    return redactDiagnosticText(value,2500);
+  }
+  if (Array.isArray(value)) return value.map(entry=>safeExport(entry));
   if (value && typeof value === "object")
-    return Object.fromEntries(Object.entries(value).map(([key,entry])=>[key,safeExport(entry)]));
+    return Object.fromEntries(Object.entries(value).map(([k,entry])=>[k,safeExport(entry,k)]));
   return value;
 }
 $("saveJson").addEventListener("click",() =>

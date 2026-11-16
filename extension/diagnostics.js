@@ -18,29 +18,46 @@ export function safeEvidenceUrl(raw) {
     }).join("/");
   } catch { return "[unknown]"; }
 }
-export function classifyDiagnostic(kind, data={}, context={}) {
-  if (!["console-warning","console-error","console-exception","network-failure","environment-diagnostic"].includes(kind)) {
+function sameOrigin(raw,page) {
+  if (!raw || !page) return false;
+  try {
+    const a=new URL(raw), b=new URL(page);
+    return ["http:","https:"].includes(a.protocol) && a.origin === b.origin;
+  } catch { return false; }
+}
+// A concrete script callsite is stronger than the execution environment that
+// observed it. Attribution remains an estimate and never establishes a bug.
+export function classifyDiagnostic(kind,data={},context={}) {
+  if (!["console-warning","console-error","console-exception","network-failure","environment-diagnostic"].includes(kind))
     return {kind,data};
+  const callsite=context.stackUrl || context.url || "";
+  const pageCallsite=sameOrigin(callsite,context.pageUrl);
+  const runtimeMessage=isRuntimeMessage(data.message);
+  const extensionCallsite=isExtension(callsite);
+  const internalCallsite=isBrowser(callsite);
+  const extensionContext=isExtension(context.contextOrigin) || isExtension(context.contextName);
+  const internalContext=isBrowser(context.contextOrigin);
+  const isolated=context.isIsolated === true;
+  if (pageCallsite && !runtimeMessage && kind !== "environment-diagnostic") {
+    const effectiveKind=kind === "console-error" && ["warning","warn"].includes(data.level) ?
+      "console-warning" : kind;
+    return {kind:effectiveKind,data:{...data,
+      sourceHint:"page-script",sourceConfidence:"callsite"}};
   }
-  const refs = [context.url,context.stackUrl,context.contextOrigin,context.contextName,
-    data.url, data.stackUrl];
-  const extensionSource = refs.some(isExtension) || data.sourceHint === "browser-extension";
-  const browserSource = refs.some(isBrowser) || data.sourceHint === "browser-internal";
-  const isolated = context.isIsolated === true;
-  const runtimeMessage = isRuntimeMessage(data.message);
-  const external = extensionSource || browserSource || isolated || runtimeMessage ||
-    kind === "environment-diagnostic";
+  const external=extensionCallsite || internalCallsite || extensionContext ||
+    internalContext || isolated || runtimeMessage || kind === "environment-diagnostic";
   if (external) {
-    const sourceHint = extensionSource ? "browser-extension" :
-      browserSource ? "browser-internal" : isolated ? "isolated-world" :
+    const sourceHint=extensionCallsite || extensionContext ? "browser-extension" :
+      internalCallsite || internalContext ? "browser-internal" :
+      isolated ? "isolated-world" :
       runtimeMessage ? "possible-extension-messaging" : data.sourceHint || "environment";
     return {kind:"environment-diagnostic",data:{
-      ...data,originalKind:data.originalKind || kind,sourceHint
+      ...data,originalKind:data.originalKind || kind,sourceHint,
+      sourceConfidence: extensionCallsite || internalCallsite ? "callsite" : "context"
     }};
   }
-  if (kind === "console-error" && ["warn","warning"].includes(data.level)) {
+  if (kind === "console-error" && ["warning","warn"].includes(data.level))
     return {kind:"console-warning",data:{...data,originalKind:kind}};
-  }
   return {kind,data};
 }
 

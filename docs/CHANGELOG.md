@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-16 — Real fixture evidence provenance correction
+
+- Uploaded report proved all three fixture actions ran, including four warnings grouped into one event.
+- Improved source attribution to favor real script callsites over extension-owned observer contexts when they disagree.
+- Marked page-script classification with a callsite source confidence hint; no claims of absolute attribution.
+- Fixed sanitized JSON export to keep session IDs stable instead of replacing numeric IDs.
+- Added regression tests for page/extension attribution conflicts.
+- Chrome extension behavior after this patch requires a new local validation run.
+
+
 ## 2026-11-16 — Controlled fixture traceability
 
 - Added safe, explicitly named data-testid capture without logging user input values.
