@@ -26,7 +26,7 @@ document.querySelectorAll("[data-seconds]").forEach(button=>button.addEventListe
 }));
 $("start").addEventListener("click",async()=>{
   try{
-    const tab=await resolveTab();
+    const tab=tabId?{id:tabId}:await resolveTab();
     if(!tab)throw Error("Select an authorized website tab");
     $("message").textContent="Starting tab capture…";
     const streamId=await chrome.tabCapture.getMediaStreamId({targetTabId:tab.id});
