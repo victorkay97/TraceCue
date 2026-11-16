@@ -1,7 +1,7 @@
 {
   "schema": "tracecue-session-v1",
   "id": "tc-public-demo-001",
-  "title": "DEMO DATA — Fictional profile-save failure",
+  "title": "DEMO DATA — Two fictional QA issues",
   "url": "https://example.test/fictional-profile",
   "startedAt": 1794834000000,
   "stoppedAt": 1794834020000,
@@ -11,7 +11,7 @@
   },
   "videoStored": false,
   "droppedEvents": 0,
-  "testerNotes": "Synthetic test evidence only. Expected: save succeeds. Actual: a fictional HTTP 500 is recorded. Do not submit as a real bug.",
+  "testerNotes": "Synthetic evidence only. Issue 1: a fictional profile save returns HTTP 500. Issue 2: a fictional displayed-name mismatch. No real user data, reproduction success or video is implied.",
   "events": [
     {
       "kind": "capture-started",
@@ -46,8 +46,36 @@
       "at": 1794834010000,
       "message": "Tester marked a possible defect",
       "markerId": "m-demo-001",
-      "title": "Fictional save error",
-      "lookbackSeconds": 15
+      "title": "Profile save returned HTTP 500",
+      "lookbackSeconds": 9,
+      "postBufferSeconds": 3
+    },
+    {
+      "kind": "network-response",
+      "at": 1794834011500,
+      "status": 200,
+      "method": "GET",
+      "url": "https://example.test/api/profile",
+      "resourceType": "Fetch"
+    },
+    {
+      "kind": "click",
+      "at": 1794834014000,
+      "element": "testid:profile-details"
+    },
+    {
+      "kind": "console-error",
+      "at": 1794834016500,
+      "level": "error",
+      "message": "Synthetic name mismatch: expected Ada, displayed Sam"
+    },
+    {
+      "kind": "issue-marker",
+      "at": 1794834017800,
+      "markerId": "m-demo-002",
+      "title": "Fictional name mismatch",
+      "lookbackSeconds": 5,
+      "postBufferSeconds": 2
     },
     {
       "kind": "capture-stopped",
