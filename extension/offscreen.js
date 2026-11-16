@@ -31,10 +31,11 @@ async function begin(streamId,id) {
   recorder.ondataavailable = event => { if (event.data && event.data.size) chunks.push(event.data); };
   active = {stream,recorder,chunks,id,mimeType};
   recorder.start(1000);
+  const startedAt = Date.now();
   heartbeatTimer = setInterval(() => {
     chrome.runtime.sendMessage({target:"background",kind:"heartbeat"}).catch(() => {});
   },20000);
-  return {ok:true};
+  return {ok:true,startedAt};
 }
 async function finish(id) {
   const item = active;
