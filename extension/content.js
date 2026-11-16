@@ -24,7 +24,10 @@
       }).catch(() => {});
     } catch { /* Extension may have stopped synchronously. */ }
   };
-  document.addEventListener("click", e => send("click",describe(e.target)), true);
+  document.addEventListener("click",e=>{
+    if(e.composedPath().some(node=>node?.id==="tracecue-companion-root"))return;
+    send("click",describe(e.target));
+  },true);
   document.addEventListener("submit", e => send("submit",describe(e.target)), true);
   document.addEventListener("change", e => send("change",describe(e.target)), true);
   send("page-ready","document");
