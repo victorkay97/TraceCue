@@ -11,7 +11,7 @@ TraceCue **is not** a Jira, Linear, or ClickUp clone. It owns **sessions, eviden
 ## Repositories / components
 
 - **extension/** — user-triggered Chrome MV3 QA companion, local tab video, browser events, console and network diagnostics, local evidence viewer.
-- **studio/** — Vite browser workspace for importing JSON evidence, reviewing a timeline, and explicitly invoking Firebase AI Logic on-device or in the cloud.
+- **studio/** — Vite browser workspace for importing JSON evidence, reviewing a timeline, producing a deliberately skipped Playwright test scaffold, and explicitly invoking Firebase AI Logic on-device or in the cloud.
 - **tests/** — capture/report unit tests.
 - **docs/** — system design, security boundaries, setup and hackathon progress.
 
