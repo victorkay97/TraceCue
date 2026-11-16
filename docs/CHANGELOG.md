@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-16 — Second live capture and evidence triage
+
+- User verified a 41-second recording, 6.6 MB locally stored video, 24 grouped timeline events and 83 occurrences on an authorized test session.
+- Separated likely Chrome extension messaging errors from application failures as environment diagnostics, retaining source hints and raw messages for review; classification is heuristic, not attribution.
+- Added legacy-report classification so earlier session evidence remains useful without re-recording.
+- Handled rejected content-script messages after extension reload and acknowledged extension messages.
+- Added an Environment filter in the recording viewer and a dedicated Studio metric.
+- Added tester-editable issue title, separate from the website's page title, so browsing sessions are not automatically reported as defects.
+- Extended unit tests for environment noise and issue labeling.
+- Live Firebase inference remains unverified.
+
 ## 2026-11-16 — First live capture feedback
 
 - The user verified an authorized recording session rendered in Chrome: saved tab video and timestamped diagnostic events.
