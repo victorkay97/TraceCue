@@ -4,6 +4,7 @@ import { investigate } from "./firebase-ai.js";
 import {prepareInvestigation,parseInvestigation,structuredToMarkdown} from "./evidence-intelligence.js";
 import {renderEvidenceCatalog,renderInvestigation} from "./intelligence-view.js";
 import { generatePlaywrightDraft } from "./playwright-draft.js";
+import {buildGitHubIssueDraft,githubIssueUrl} from "./github-handoff.js";
 
 let session = null;
 let analysis = null;
@@ -44,6 +45,16 @@ app.innerHTML = [
         '<details class="raw-response"><summary>View raw model response</summary><div id="aiResult" class="output">No AI response yet.</div></details>',
         '<button id="export" class="download" disabled>↓ &nbsp; Download investigation (.md)</button>',
         '<button id="playwright" class="download" disabled>↓ &nbsp; Draft Playwright test (.spec.ts)</button>',
+        '<section class="handoff" id="githubHandoff">',
+          '<div class="eyebrow">ENGINEERING HANDOFF</div><h3>GitHub Issues draft</h3>',
+          '<p>Copy a minimized draft for review. Nothing is published or uploaded to GitHub automatically.</p>',
+          '<label for="githubRepo">Target repository (owner/repository)</label>',
+          '<input id="githubRepo" spellcheck="false" autocomplete="off" placeholder="owner/repository">',
+          '<label for="issuePreview">Review issue draft</label>',
+          '<textarea id="issuePreview" rows="9" readonly placeholder="Analyze a session to prepare a draft."></textarea>',
+          '<div class="actions"><button id="copyGitHub" disabled>Copy issue draft</button><button id="openGitHub" class="ghost" disabled>Open GitHub Issues</button></div>',
+          '<p id="handoffStatus" class="status-text">Only reviewed text is copied; videos and raw session data are not sent.</p>',
+        '</section>',
         '</section>',
       '</div>',
       '<footer>TraceCue Studio · Evidence-first QA · No task-management features or fabricated AI results.</footer>',
@@ -67,6 +78,9 @@ function focusEvidence(id){
 function resetAnalysis(message){
   analysis=null;
   $("export").disabled=true;
+  $("copyGitHub").disabled=true;
+  $("issuePreview").value="";
+  $("handoffStatus").textContent="No current AI investigation. Nothing was sent to GitHub.";
   // If a prompt is edited while a request is running, discard the stale result
   // and allow a fresh request instead of leaving the buttons disabled.
   if(session){
@@ -170,6 +184,7 @@ async function analyze(mode) {
     $("aiStatus").textContent="Verified SDK source "+result.source+" · "+result.at+
       (parsed.reason?" · "+parsed.reason+"; raw output retained":" · evidence references verified");
     $("export").disabled=false;
+    refreshGitHubDraft();
     $("consent").checked=false;
   }catch(error){
     if(serial!==activeRequest)return;
@@ -181,6 +196,39 @@ async function analyze(mode) {
     }
   }
 }
+function refreshGitHubDraft(){
+  if(!session || !analysis?.structured){
+    $("issuePreview").value="";
+    $("copyGitHub").disabled=true;
+    return;
+  }
+  const draft=buildGitHubIssueDraft(session,analysis.structured,evidence,analysis.source);
+  $("issuePreview").value=draft.title+"\n\n"+draft.body;
+  $("copyGitHub").disabled=false;
+  $("handoffStatus").textContent="Review draft and choose a destination. No GitHub request has been made.";
+}
+$("githubRepo").addEventListener("input",()=>{
+  const url=githubIssueUrl($("githubRepo").value);
+  $("openGitHub").disabled=!url;
+  $("handoffStatus").textContent=url?"Repository format valid. Opening it does not submit a report.":
+    "Enter a GitHub repository in owner/repository format.";
+});
+$("copyGitHub").addEventListener("click",async()=>{
+  if(!session||!analysis?.structured)return;
+  try{
+    await navigator.clipboard.writeText($("issuePreview").value);
+    $("handoffStatus").textContent="Draft copied locally. Review its content before pasting or submitting.";
+  }catch(err){
+    $("handoffStatus").textContent="Clipboard failed: "+err.message+". Select the draft manually to copy it.";
+  }
+});
+$("openGitHub").addEventListener("click",()=>{
+  const url=githubIssueUrl($("githubRepo").value);
+  if(!url)return;
+  window.open(url,"_blank","noopener,noreferrer");
+  $("handoffStatus").textContent="GitHub issue form opened. No report text or recording was transmitted by TraceCue.";
+});
+
 $("device").addEventListener("click",()=>analyze("device"));
 $("cloud").addEventListener("click",()=>analyze("cloud"));
 $("export").addEventListener("click",() => {
