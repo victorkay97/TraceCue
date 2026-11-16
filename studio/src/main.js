@@ -6,6 +6,8 @@ import {renderEvidenceCatalog,renderInvestigation} from "./intelligence-view.js"
 import { generatePlaywrightDraft } from "./playwright-draft.js";
 import {buildGitHubIssueDraft,githubIssueUrl} from "./github-handoff.js";
 import {createVideoInspector} from "./synchronized-video.js";
+import {evaluateReproduction} from "./repro-audit.js";
+import {sanitizeForAI} from "./evidence-intelligence.js";
 
 let session = null;
 let analysis = null;
@@ -54,6 +56,15 @@ app.innerHTML = [
           '<p>Copy a minimized draft for review. Nothing is published or uploaded to GitHub automatically.</p>',
           '<label for="githubRepo">Target repository (owner/repository)</label>',
           '<input id="githubRepo" spellcheck="false" autocomplete="off" placeholder="owner/repository">',
+          '<div class="audit"><strong>Human reproduction review</strong><p>These checks are tester attestations, not AI-generated proof.</p>',
+          '<label for="reproPreconditions">Prerequisites / test account state</label><textarea id="reproPreconditions" rows="2" placeholder="Sandbox environment, test account and initial state"></textarea>',
+          '<label for="reproExpected">Expected result</label><textarea id="reproExpected" rows="2" placeholder="What should happen?"></textarea>',
+          '<label for="reproActual">Actual result</label><textarea id="reproActual" rows="2" placeholder="What did you observe?"></textarea>',
+          '<label class="consent"><input id="reproSteps" type="checkbox"><span>I manually checked each reproduction step</span></label>',
+          '<label class="consent"><input id="reproRetest" type="checkbox"><span>I retested the issue and confirmed the result</span></label>',
+          '<label class="consent"><input id="reproPrivacy" type="checkbox"><span>I reviewed the draft for sensitive information</span></label>',
+          '<label class="consent"><input id="reproAuthorized" type="checkbox"><span>I am authorized to test and share this evidence</span></label>',
+          '<p id="reproStatus" role="status" class="status-text">Complete the review before sharing an issue draft.</p></div>',
           '<label for="issuePreview">Review issue draft</label>',
           '<textarea id="issuePreview" rows="9" readonly placeholder="Analyze a session to prepare a draft."></textarea>',
           '<div class="actions"><button id="copyGitHub" disabled>Copy issue draft</button><button id="openGitHub" class="ghost" disabled>Open GitHub Issues</button></div>',
@@ -88,6 +99,7 @@ function resetAnalysis(message){
   $("copyGitHub").disabled=true;
   $("issuePreview").value="";
   $("handoffStatus").textContent="No current AI investigation. Nothing was sent to GitHub.";
+  if(typeof currentAudit==="function")refreshGitHubDraft();
   // If a prompt is edited while a request is running, discard the stale result
   // and allow a fresh request instead of leaving the buttons disabled.
   if(session){
@@ -156,6 +168,8 @@ $("file").addEventListener("change",async event => {
     if (file.size > 5_000_000) throw new Error("Maximum supported JSON size is 5MB.");
     const data = validateReport(JSON.parse(await file.text()));
     session=data;analysis=null;
+    for(const id of ["reproPreconditions","reproExpected","reproActual"])$(id).value="";
+    for(const id of ["reproSteps","reproRetest","reproPrivacy","reproAuthorized"])$(id).checked=false;
     videoInspector.configure(data);
     const s=summarize(data);
     $("events").textContent=s.events;
@@ -211,25 +225,55 @@ async function analyze(mode) {
     }
   }
 }
+const reproFields=["reproPreconditions","reproExpected","reproActual",
+  "reproSteps","reproRetest","reproPrivacy","reproAuthorized"];
+function currentAudit(){
+  return {
+    preconditions:$("reproPreconditions").value,expected:$("reproExpected").value,
+    actual:$("reproActual").value,
+    stepsReviewed:$("reproSteps").checked,
+    retested:$("reproRetest").checked,
+    privacyReviewed:$("reproPrivacy").checked,
+    authorized:$("reproAuthorized").checked
+  };
+}
 function refreshGitHubDraft(){
+  const audit=currentAudit();
+  const gate=evaluateReproduction(audit,evidence);
+  $("reproStatus").textContent=gate.label+
+    (gate.blockers.length?" — "+gate.blockers.join(" "):" · Human-reviewed; not independently verified.");
+  $("copyGitHub").disabled=!analysis?.structured||!gate.ready;
+  $("openGitHub").disabled=!analysis?.structured||!gate.ready||!githubIssueUrl($("githubRepo").value);
   if(!session || !analysis?.structured){
-    $("issuePreview").value="";
-    $("copyGitHub").disabled=true;
-    return;
+    $("issuePreview").value="";return;
   }
   const draft=buildGitHubIssueDraft(session,analysis.structured,evidence,analysis.source);
-  $("issuePreview").value=draft.title+"\n\n"+draft.body;
-  $("copyGitHub").disabled=false;
-  $("handoffStatus").textContent="Review draft and choose a destination. No GitHub request has been made.";
+  const review=[
+    "## Tester attestation (self-reported)",
+    "- Prerequisites: "+sanitizeForAI(audit.preconditions,600),
+    "- Expected: "+sanitizeForAI(audit.expected,600),
+    "- Actual: "+sanitizeForAI(audit.actual,600),
+    "- Steps reviewed: "+(audit.stepsReviewed?"Yes":"Not yet"),
+    "- Retested: "+(audit.retested?"Yes":"Not yet"),
+    "- Sensitive information reviewed: "+(audit.privacyReviewed?"Yes":"Not yet"),
+    "- Authorization confirmed: "+(audit.authorized?"Yes":"Not yet"),
+    ""
+  ].join("\n");
+  $("issuePreview").value=draft.title+"\n\n"+review+"\n"+draft.body;
+  $("handoffStatus").textContent=gate.ready?
+    "Ready for explicit manual review in GitHub. Nothing has been transmitted.":
+    "Draft preview only; complete tester verification before copying or opening GitHub.";
 }
+reproFields.forEach(id=>$(id).addEventListener("input",refreshGitHubDraft));
+
 $("githubRepo").addEventListener("input",()=>{
   const url=githubIssueUrl($("githubRepo").value);
-  $("openGitHub").disabled=!url;
+  $("openGitHub").disabled=!url||!evaluateReproduction(currentAudit(),evidence).ready||!analysis?.structured;
   $("handoffStatus").textContent=url?"Repository format valid. Opening it does not submit a report.":
     "Enter a GitHub repository in owner/repository format.";
 });
 $("copyGitHub").addEventListener("click",async()=>{
-  if(!session||!analysis?.structured)return;
+  if(!session||!analysis?.structured||!evaluateReproduction(currentAudit(),evidence).ready)return;
   try{
     await navigator.clipboard.writeText($("issuePreview").value);
     $("handoffStatus").textContent="Draft copied locally. Review its content before pasting or submitting.";
@@ -239,7 +283,7 @@ $("copyGitHub").addEventListener("click",async()=>{
 });
 $("openGitHub").addEventListener("click",()=>{
   const url=githubIssueUrl($("githubRepo").value);
-  if(!url)return;
+  if(!url||!analysis?.structured||!evaluateReproduction(currentAudit(),evidence).ready)return;
   window.open(url,"_blank","noopener,noreferrer");
   $("handoffStatus").textContent="GitHub issue form opened. No report text or recording was transmitted by TraceCue.";
 });
