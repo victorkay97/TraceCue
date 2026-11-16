@@ -84,3 +84,33 @@ The Studio is configured as a static Vite site with the `studio/` project root o
 ## Privacy acceptance rule (non-negotiable)
 
 In-tab DOM widgets are **not** guaranteed to be invisible to Chrome tab capture. For a clean video, only out-of-tab controls may remain visible while recording. Don't use CSS overlays, a compositor blur, or video masking as proof of exclusion. The browser acceptance test must inspect the saved WebM itself. Future work may explore a native always-on-top companion, but the current Chrome popup is not guaranteed to stay on top.
+
+
+## 7. Editable clip windows, post-marker buffer and complete issue evidence
+
+This section supersedes earlier descriptions that only covered pre-marker video.
+
+- Recording defaults: each marker has a selectable 15/30/60/120-second lookback plus a separate 0/5/10-second post-marker buffer; **+5 seconds** is selected by default on new markers. Older marker exports without this field retain +0 seconds for compatibility.
+- At review, **Start / End** numerical fields are editable in tenths of seconds. Tester can **Preview interval**, then **Apply trim**. A **Reset to marker** option restores original lookback/post-buffer behavior.
+- An applied trim updates the marker's timing, invalidates its previously encoded clip, and requires generating a new independent WebM. The full original WebM is never overwritten. This avoids showing a stale video with new labels or evidence.
+- A post-marker buffer is limited to what was actually recorded. If Stop occurs before the buffer finishes, the interval ends at the available last frame. No video frames are invented.
+- Each issue includes its own **Technical evidence** inspector, with Console / Network / Actions / Environment filters and a text search. The inspector follows its video window, so extending, shortening, or moving the clip changes which recorded events are included.
+- Captured signals now cover user actions, warning/error/exception logs, console.info/log/debug, failed network requests and successful XHR/fetch response **metadata** (HTTP status, method, sanitized path and approximate duration), and limited environment metadata. The capture intentionally excludes raw request/response bodies, cookies, and authentication headers. Redaction is best effort.
+- New grouped console events retain sampled per-occurrence timestamps, so an event group crossing a clip boundary can be attributed more precisely. Older reports without those timestamps may display an approximate event time.
+- Individual clip exports now include all captured evidence events in that time window (subject to the whole session's maximum 4,000 recorded events); the viewer paginates long event lists for performance instead of silently dropping data.
+- Each issue report separately records tester-rated severity, retest status, expected behavior, actual behavior, reproduction notes and additional observations. These are **human-entered facts**, not verified AI assertions.
+- A tester can **Copy report**, download Markdown, download time-scoped JSON, and download a video clip independently.
+- The issue video and its event window share the full recording's video clock. Playing a generated clip highlights the nearest visible event; clicking an event seeks to that moment in the original recording.
+
+### Video editing acceptance criteria
+
+1. Record the intentionally failing save, wait, and mark it with 30 seconds before + 5 seconds after.
+2. Later, trigger fictional name mismatch and mark it 15 seconds before + 10 seconds after.
+3. Stop and ensure there is one full recording and two independently named clips.
+4. Open the first issue. Set Start to 3 seconds later and End to 2 seconds later than the current start/end, then Apply trim. Confirm evidence outside the new window disappears from that issue and the old encoded clip is invalidated.
+5. Generate the revised clip; verify it plays, its duration approximates the chosen interval, and only its own filtered logs and actions appear.
+6. Confirm the second issue's video, evidence, notes and identity are unchanged.
+7. In the issue report, check the HTTP response status, console events, times, severity and reproduction fields. Confirm no raw bodies, cookies, authentication headers or unrelated issue logs are included.
+8. Confirm the in-page mascot never appears in any captured frame.
+
+**Not yet verified in live Chrome:** exact WebM encoding/seeking, playback sync and clip-boundary updates. Automated Node tests cover timestamp math, clip evidence scoping and redaction, and Studio build/syntax checks; live video needs the tester's desktop browser.
