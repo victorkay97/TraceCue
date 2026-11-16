@@ -22,6 +22,8 @@
           <button id="saveMarkdown" class="secondary">Export issue draft</button>
           <button id="deleteSession" class="danger">Delete local session</button>
         </div>
+        <label for="issueTitle">Issue title (optional)</label>
+        <input id="issueTitle" type="text" maxlength="160" placeholder="e.g. Save button does not update the profile"/>
         <label for="notes">Tester notes / expected vs actual</label>
         <textarea id="notes" rows="5" placeholder="Expected: save succeeds. Actual: response 500 and UI is unchanged."></textarea>
         <p class="muted tiny">Notes are stored only in your browser until you choose to export.</p>
