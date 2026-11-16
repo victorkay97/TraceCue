@@ -35,3 +35,12 @@ test("first/last source flags remain filterable",()=>{
  assert.equal(evidenceCategory("network-response"),"network");
  assert.equal(evidenceCategory("click"),"actions");
 });
+
+test("large clip interval exports every captured event instead of a hidden 200-item cap",()=>{
+ const expanded={...report,events:Array.from({length:310},(_,index)=>({
+   kind:"console-info",at:2000+index*100,message:"safe log "+index
+ }))};
+ const marker={kind:"issue-marker",at:39000,lookbackSeconds:60,postBufferSeconds:5};
+ assert.equal(clipEvents(expanded,marker).length,310);
+ assert.equal(clipEvents(expanded,marker,{limit:150}).length,150);
+});
