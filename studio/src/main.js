@@ -166,7 +166,7 @@ async function analyze(mode) {
     const parsed=parseInvestigation(result.text,evidence.map(x=>x.id));
     analysis={...result,structured:parsed.structured};
     $("aiResult").textContent=result.text;
-    renderInvestigation($("structuredResult"),parsed.structured,focusEvidence);
+    renderInvestigation($("structuredResult"),parsed.structured,focusEvidence,evidence);
     $("aiStatus").textContent="Verified SDK source "+result.source+" · "+result.at+
       (parsed.reason?" · "+parsed.reason+"; raw output retained":" · evidence references verified");
     $("export").disabled=false;
