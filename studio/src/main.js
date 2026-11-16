@@ -28,7 +28,7 @@ app.innerHTML = [
   '<div class="content">',
     '<header class="topbar"><div><span class="crumb">QA workspace / <strong>Session overview</strong></span></div><span class="state">● Development preview</span></header>',
     '<main>',
-      '<section class="hero" id="overview"><div><span class="eyebrow">TRACE EVERY DEFECT</span><h1>Understand what happened.<br><em>Not what was remembered.</em></h1><p>Bring a browser testing session into TraceCue. Review the evidence locally, then decide whether an AI-assisted investigation is useful.</p></div><label class="upload">↑ &nbsp; Import session JSON<input type="file" id="file" accept="application/json,.json" hidden></label></section>',
+      '<section class="hero" id="overview"><div><span class="eyebrow">TRACE EVERY DEFECT</span><h1>Understand what happened.<br><em>Not what was remembered.</em></h1><p>Bring a browser testing session into TraceCue. Review the evidence locally, then decide whether an AI-assisted investigation is useful.</p><p class="demo-label">Public demo is fictional and does not represent an actual customer defect.</p></div><div class="hero-actions"><button id="loadDemo" class="demo-button">Try fictional demo</button><label class="upload">↑ &nbsp; Import session JSON<input type="file" id="file" accept="application/json,.json" hidden></label></div></section>',
       '<section class="metrics"><div class="metric"><small>Event occurrences</small><b id="events">—</b><span>From imported session</span></div><div class="metric"><small>Failures</small><b id="errors">—</b><span>Exceptions and failed requests</span></div><div class="metric"><small>Warnings</small><b id="warnings">—</b><span>Potentially noncritical diagnostics</span></div><div class="metric"><small>Environment</small><b id="environment">—</b><span>Possible extension-related messages</span></div><div class="metric"><small>Interactions</small><b id="actions">—</b><span>User actions</span></div><div class="metric"><small>Duration</small><b id="duration">—</b><span>Seconds captured</span></div></section>',
       '<div class="two">',
         '<section class="panel" id="evidence"><div class="panel-head"><div><span class="eyebrow">CAPTURED SESSION</span><h2>Evidence timeline</h2></div><span class="badge" id="sessionBadge">No session imported</span></div>',
@@ -161,12 +161,7 @@ $("prompt").addEventListener("input",() => {
   resetAnalysis("Prompt edited; previous output is no longer current.");
   $("aiStatus").textContent = "Prompt edited. Review it again before cloud analysis.";
 });
-$("file").addEventListener("change",async event => {
-  try {
-    const file=event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5_000_000) throw new Error("Maximum supported JSON size is 5MB.");
-    const data = validateReport(JSON.parse(await file.text()));
+function applyReport(data){
     session=data;analysis=null;
     for(const id of ["reproPreconditions","reproExpected","reproActual"])$(id).value="";
     for(const id of ["reproSteps","reproRetest","reproPrivacy","reproAuthorized"])$(id).checked=false;
@@ -185,6 +180,23 @@ $("file").addEventListener("change",async event => {
     $("device").disabled=false;$("cloud").disabled=false;$("playwright").disabled=false;
     $("aiStatus").textContent="Evidence imported locally. AI has not been invoked.";
     renderTimeline();syncPrompt();
+}
+$("loadDemo").addEventListener("click",async()=>{
+  try{
+    const response=await fetch("/demo-session.json");
+    if(!response.ok)throw new Error("Fictional demo file unavailable");
+    const report=validateReport(await response.json());
+    applyReport(report);
+    $("aiStatus").textContent="Synthetic demo loaded. These are not verified real-world failures.";
+  }catch(error){$("aiStatus").textContent="Demo load failed: "+error.message;}
+});
+$("file").addEventListener("change",async event => {
+  try {
+    const file=event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5_000_000) throw new Error("Maximum supported JSON size is 5MB.");
+    const data = validateReport(JSON.parse(await file.text()));
+    applyReport(data);
   } catch (error) {
     $("aiStatus").textContent="Import failed: " + error.message;
   } finally { event.target.value = ""; }
