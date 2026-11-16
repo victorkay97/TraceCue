@@ -90,3 +90,30 @@ Firebase now warns that classic reCAPTCHA is deprecated. TraceCue Studio uses `R
 ## Firebase SDK inference source values
 
 The SDK's `InferenceMode.ONLY_ON_DEVICE` and `InferenceMode.ONLY_IN_CLOUD` constants select where inference must run, but `result.response.inferenceSource` returns the lowercase values `on_device` or `in_cloud`. TraceCue validates the lowercase values strictly. This was corrected after the first live cloud test, where the service responded with `in_cloud` but older TraceCue code incorrectly rejected it as a failed request. See `tests/inference-source.test.mjs`.
+
+## Correct Chrome Prompt API availability check (English)
+
+The bare `LanguageModel.availability()` call can warn when expected output languages are omitted. Use these options to match TraceCue's on-device inference:
+
+~~~javascript
+const languageOptions = {
+  expectedInputs: [{ type: "text", languages: ["en"] }],
+  expectedOutputs: [{ type: "text", languages: ["en"] }]
+};
+console.log("Prompt API status:", await LanguageModel.availability(languageOptions));
+~~~
+
+If `downloadable`, the local-model download can be initiated from an explicit user action:
+
+~~~javascript
+const localSession = await LanguageModel.create({
+  ...languageOptions,
+  monitor(m) {
+    m.addEventListener("downloadprogress", e => console.log("Downloaded:",Math.round(e.loaded*100)+"%"));
+  }
+});
+console.log("Local language model ready.");
+localSession.destroy();
+~~~
+
+TraceCue now passes the English text parameters through `onDeviceParams.createOptions` in ONLY_ON_DEVICE mode. Content-script console messages from unrelated extensions do not establish model readiness.
