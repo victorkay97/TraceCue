@@ -40,7 +40,7 @@ Apache License 2.0; see [LICENSE](LICENSE). See [third-party decisions](docs/THI
 
 ## TraceCue Studio public demo
 
-[Open the fictional Studio demonstration](https://tracecue-studio-preview.vercel.app/). Vercel confirmed that the development-branch build is ready. The public demo includes fictional QA evidence and no private recordings. It does **not** yet have production Firebase credentials or App Check domain registration; local Firebase hybrid inference was verified separately. See [the 0.2 workflow](docs/V2_WORKFLOW.md) before claiming the newly added clipping/companion features are browser-verified.
+[Open the fictional Studio demonstration](https://tracecue-studio-preview.vercel.app/). Vercel confirmed that the development-branch build is ready. The public demo includes fictional QA evidence and no private recordings. It does **not** yet have production Firebase credentials or App Check domain registration; local Firebase hybrid inference was verified separately. See [the 0.2 workflow](docs/V2_WORKFLOW.md) before claiming the newly added clipping/companion features are browser-verified. See also the [QA specialist's product roadmap](docs/QA_WORKSPACE_ROADMAP.md) for prioritized research, usability and reliability work.
 
 ## Hackathon progress
 
