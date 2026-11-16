@@ -1,6 +1,7 @@
 const $=id=>document.getElementById(id);
 let tabId=Number(new URLSearchParams(location.search).get("tab"))||null;
 let seconds=30;
+let postSeconds=5;
 const send=(action,more={})=>chrome.runtime.sendMessage({target:"tracecue-control",action,tabId,...more});
 async function resolveTab(){
   if(tabId){const tab=await chrome.tabs.get(tabId).catch(()=>null);if(tab)return tab;}
@@ -28,7 +29,7 @@ function renderIssueHistory(markers=[],startedAt=null){
     const time=document.createElement("small");
     const timeFromStart=Number.isFinite(startedAt)?Math.max(0,(marker.at-startedAt)/1000):null;
     time.textContent=(timeFromStart==null?"":("+"+timeFromStart.toFixed(1)+"s · "))+
-      "previous "+(marker.lookbackSeconds||30)+"s";
+      "previous "+(marker.lookbackSeconds||30)+"s · next "+(marker.postBufferSeconds??0)+"s";
     row.append(title,time);list.append(row);
   }
 }
@@ -47,6 +48,10 @@ async function refresh(){
 document.querySelectorAll("[data-seconds]").forEach(button=>button.addEventListener("click",()=>{
   seconds=Number(button.dataset.seconds);
   document.querySelectorAll("[data-seconds]").forEach(b=>b.classList.toggle("selected",b===button));
+}));
+document.querySelectorAll("[data-post]").forEach(button=>button.addEventListener("click",()=>{
+  postSeconds=Number(button.dataset.post);
+  document.querySelectorAll("[data-post]").forEach(b=>b.classList.toggle("selected",b===button));
 }));
 $("start").addEventListener("click",async()=>{
   try{
@@ -68,9 +73,9 @@ $("stop").addEventListener("click",async()=>{
 });
 $("mark").addEventListener("click",async()=>{
   const title=$("issueTitle").value.trim()||"Untitled issue";
-  const result=await send("mark",{title,lookbackSeconds:seconds}).catch(e=>({ok:false,error:e.message}));
+  const result=await send("mark",{title,lookbackSeconds:seconds,postBufferSeconds:postSeconds}).catch(e=>({ok:false,error:e.message}));
   if(result?.ok){
-    $("message").textContent="Saved: "+title+" · previous "+seconds+"s. Full recording continues.";
+    $("message").textContent="Saved: "+title+" · "+seconds+"s before and "+postSeconds+"s after. Full recording continues.";
     $("issueTitle").value="";
   }else $("message").textContent=result?.error||"Mark failed";
   await refresh();

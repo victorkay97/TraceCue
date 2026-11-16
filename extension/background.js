@@ -177,7 +177,7 @@ chrome.action.onClicked.addListener(async tab => {
 chrome.commands.onCommand.addListener(async command => {
   await ready;
   if (command === "mark-issue" && session) {
-    record("issue-marker",{markerId:"m-"+Date.now()+"-"+session.events.length,title:"Issue marker",lookbackSeconds:30});
+    record("issue-marker",{markerId:"m-"+Date.now()+"-"+session.events.length,title:"Issue marker",lookbackSeconds:30,postBufferSeconds:5});
     await persist().catch(() => {});
   }
 });
@@ -211,7 +211,7 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
         ok:true,recording:!!session,activeOnTab,
         startedAt:activeOnTab?session.startedAt:null,tabId:session?.tabId??null,
         markers:activeOnTab ? session.events.filter(e=>e.kind==="issue-marker").slice(-40)
-          .map(({markerId,title,lookbackSeconds,at})=>({markerId,title,lookbackSeconds,at})): []
+          .map(({markerId,title,lookbackSeconds,postBufferSeconds,at})=>({markerId,title,lookbackSeconds,postBufferSeconds,at})): []
       };
     }
     if(msg.action==="start"){
@@ -227,8 +227,9 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
       if(!session || session.tabId!==tab?.id)return {ok:false,error:"Start recording first"};
       const lookbackSeconds=Math.max(5,Math.min(120,Math.round(Number(msg.lookbackSeconds)||30)));
       const title=scrub(msg.title||"Issue marker",100);
+      const postBufferSeconds=[0,5,10].includes(Number(msg.postBufferSeconds))?Number(msg.postBufferSeconds):5;
       const markerId="m-"+Date.now()+"-"+session.events.length;
-      record("issue-marker",{markerId,title,lookbackSeconds});
+      record("issue-marker",{markerId,title,lookbackSeconds,postBufferSeconds});
       await persist();
       return {ok:true,markerId};
     }
