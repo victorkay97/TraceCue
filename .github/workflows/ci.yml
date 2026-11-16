@@ -45,6 +45,12 @@ jobs:
         run: npm --prefix studio install --no-audit --no-fund
       - name: Build Studio
         run: npm --prefix studio run build
+      - name: Validate marketing and Studio page outputs
+        run: |
+          test -s studio/dist/index.html
+          test -s studio/dist/app.html
+          test -s studio/dist/privacy.html
+          test -s studio/dist/favicon.svg
       - name: Package Chrome developer preview
         run: |
           cd extension

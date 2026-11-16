@@ -49,7 +49,8 @@ export function initStudioOnboarding({loadDemo,openSection}){
   triggers.forEach(trigger=>trigger.addEventListener("click",()=>{lastTrigger=trigger;show();}));
   // The demo link opens an immediate sample: don't cover it with a guide.
   const autoDemo=new URLSearchParams(location.search).has("demo");
+  const incomingHandoff=new URLSearchParams(location.hash.replace(/^#/,"")).has("tracecue-transfer");
   let completed=false;try{completed=localStorage.getItem(KEY)==="complete";}catch{}
-  if(!completed&&!autoDemo)show();
+  if(!completed&&!autoDemo&&!incomingHandoff)show();
   return {show,close};
 }
