@@ -6,6 +6,7 @@
 - The QA fixture now displays counts of triggered scenarios so a missing warning can be diagnosed.
 - Redacted extension IDs, bearer tokens and query parameters in newly recorded diagnostic strings.
 - Added automated tests for sanitization; real Chrome behavior after the patch is unverified.
+- Viewer and exported JSON/Markdown now redact sensitive text from earlier sessions, while keeping the local original unchanged.
 
 
 ## 2026-11-16 — Provenance-aware browser diagnostics

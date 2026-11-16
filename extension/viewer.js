@@ -1,3 +1,4 @@
+import { redactDiagnosticText } from "./diagnostics.js";
 // Local extension session viewer. Never fetches from remote hosts.
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get("id");
@@ -102,7 +103,7 @@ function renderTimeline() {
     const desc=document.createElement("p");
     desc.textContent=Object.entries(event)
       .filter(([key])=>!["at","lastAt","kind","occurrences","signature"].includes(key))
-      .map(([key,value])=>key+": "+String(value)).join(" · ");
+      .map(([key,value])=>key+": "+redactDiagnosticText(value,400)).join(" · ");
     info.append(desc);
     row.append(time,info);
     timeline.append(row);
@@ -164,17 +165,26 @@ function download(blob,name) {
 }
 $("saveVideo").disabled = !videoBlob;
 $("saveVideo").addEventListener("click",()=>videoBlob && download(videoBlob,id + ".webm"));
+// Sanitize copies on export, including reports captured by older TraceCue builds.
+function safeExport(value) {
+  if (typeof value === "string") return redactDiagnosticText(value,2500);
+  if (Array.isArray(value)) return value.map(safeExport);
+  if (value && typeof value === "object")
+    return Object.fromEntries(Object.entries(value).map(([key,entry])=>[key,safeExport(entry)]));
+  return value;
+}
 $("saveJson").addEventListener("click",() =>
-  download(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),id + ".json"));
+  download(new Blob([JSON.stringify(safeExport(report),null,2)],{type:"application/json"}),id + ".json"));
 $("saveMarkdown").addEventListener("click",() => {
+  const safeReport = safeExport(report);
   const lines = [
-    "# " + (report.issueTitle || "Untitled QA observation"),"",
-    "**Tested page:** " + (report.title || "Unknown page"),
-    "**Tested origin:** " + report.url,
-    "**Recorded:** " + new Date(report.startedAt).toISOString(),"",
-    "## Expected and actual behaviour","",report.testerNotes || "(Add tester notes)","",
+    "# " + (safeReport.issueTitle || "Untitled QA observation"),"",
+    "**Tested page:** " + (safeReport.title || "Unknown page"),
+    "**Tested origin:** " + safeReport.url,
+    "**Recorded:** " + new Date(safeReport.startedAt).toISOString(),"",
+    "## Expected and actual behaviour","",safeReport.testerNotes || "(Add tester notes)","",
     "## Evidence timeline","",
-    ...report.events.map(e=>"- +" + ((e.at-report.startedAt)/1000).toFixed(1) + "s — " +
+    ...safeReport.events.map(e=>"- +" + ((e.at-safeReport.startedAt)/1000).toFixed(1) + "s — " +
       e.kind + ": " + [e.element,e.message,e.url,e.status].filter(Boolean).join(" · ")),"",
     "## Reproduction checklist","",
     "- [ ] Confirm prerequisites, account state, and test data",
