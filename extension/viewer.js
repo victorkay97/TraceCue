@@ -11,9 +11,18 @@ $("title").textContent = report.title || "Untitled QA session";
 $("meta").textContent = new Date(report.startedAt).toLocaleString() + " · " +
   report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s";
 // Legacy sessions may have stored warning-level entries under console-error.
-const normalizedKind = event =>
-  event.kind === "console-error" && ["warning","warn"].includes(event.level) ?
-    "console-warning" : event.kind;
+const normalizedKind = event => {
+  if (event.kind === "environment-diagnostic") return "environment-diagnostic";
+  if (event.kind === "console-error" || event.kind === "console-warning") {
+    // Include older reports: previous versions recorded extension messaging as app errors.
+    if (/unchecked runtime\.lastError/i.test(event.message || "") &&
+        /could not establish connection|receiving end does not exist|message port closed/i.test(event.message || "")) {
+      return "environment-diagnostic";
+    }
+  }
+  if (event.kind === "console-error" && ["warning","warn"].includes(event.level)) return "console-warning";
+  return event.kind;
+};
 const occurrences = event => Number.isInteger(event.occurrences) && event.occurrences > 0 ?
   event.occurrences : 1;
 const totalOccurrences = report.events.reduce((n,e)=>n+occurrences(e),0);
@@ -48,6 +57,7 @@ function showEvent(event) {
   switch(filter) {
     case "errors":return ["console-error","console-exception","network-failure"].includes(kind);
     case "warnings":return ["console-warning","warning"].includes(kind);
+    case "environment":return kind === "environment-diagnostic";
     case "actions":return ["click","change","submit","page-ready"].includes(kind);
     case "markers":return kind === "issue-marker";
     default:return true;
@@ -70,6 +80,7 @@ function renderTimeline() {
     row.className="event event-jump" +
       (["console-error","console-exception","network-failure"].includes(kind) ? " failure" : "") +
       (["console-warning","warning"].includes(kind) ? " warn" : "") +
+      (kind === "environment-diagnostic" ? " environment" : "") +
       (kind === "issue-marker" ? " marker" : "");
     row.title="Jump to this event in the recording";
     row.addEventListener("click",()=>seekEvent(event));
