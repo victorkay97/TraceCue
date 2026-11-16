@@ -31,12 +31,26 @@ function schedulePersist() {
     persist().catch(() => {});
   },1000);
 }
-// Repeated framework warnings are still counted, but do not bury the investigation
-// under dozens of identical events. Group only the same diagnostic within 4 seconds.
+// Best-effort evidence classification. This is a source hint, not proof of origin.
+// The original error message and severity remain available for reviewer inspection.
+function classifyDiagnostic(kind,data) {
+  if (!["console-warning","console-error"].includes(kind)) return {kind,data};
+  const message = String(data.message || "");
+  if (/unchecked runtime\.lastError|could not establish connection.*receiving end does not exist/i.test(message) &&
+      /(could not establish connection|receiving end does not exist|message port closed)/i.test(message)) {
+    return {kind:"environment-diagnostic",data:{
+      ...data,sourceHint:"possible-extension-messaging",
+      originalKind:kind
+    }};
+  }
+  return {kind,data};
+}
+// Repeated diagnostic messages are counted without flooding the evidence list.
 function record(kind,data={}) {
   if (!session) return;
+  ({kind,data} = classifyDiagnostic(kind,data));
   const now = Date.now();
-  if (["console-warning","console-error","console-exception"].includes(kind)) {
+  if (["console-warning","console-error","console-exception","environment-diagnostic"].includes(kind)) {
     const signature = JSON.stringify([kind,data.level ?? "",data.message ?? "",data.url ?? ""]);
     const recent = session.events.slice(-20).reverse().find(event =>
       event.signature === signature && now - (event.lastAt || event.at) <= 4000
@@ -152,14 +166,16 @@ chrome.commands.onCommand.addListener(async command => {
     await persist().catch(() => {});
   }
 });
-chrome.runtime.onMessage.addListener((message,sender) => {
+chrome.runtime.onMessage.addListener((message,sender,sendResponse) => {
   if (message?.target !== "background") return;
-  if (message.kind === "heartbeat") return;
   if (message.kind === "interaction" && session && sender.tab?.id === session.tabId) {
     const event = message.event || {};
-    if (!["click","change","submit","page-ready"].includes(event.kind)) return;
-    record(event.kind,{element:scrub(event.element,90)});
+    if (["click","change","submit","page-ready"].includes(event.kind)) {
+      record(event.kind,{element:scrub(event.element,90)});
+    }
   }
+  // Acknowledge messages from current scripts; no dangling response promise.
+  sendResponse({ok:true});
 });
 chrome.tabs.onUpdated.addListener(async (tabId,change,tab) => {
   await ready;
