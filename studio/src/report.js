@@ -1,7 +1,8 @@
 // Data minimization deliberately occurs before any Firebase prompt is built.
 // Imported report JSON is untrusted. Avoid evaluating or injecting its text as HTML.
-const allowed = new Set(["click","submit","change","page-ready","network-failure","console-error","console-exception","warning","issue-marker","capture-started","capture-stopped"]);
-const diagnostic = new Set(["network-failure","console-error","console-exception","warning"]);
+const allowed = new Set(["click","submit","change","page-ready","network-failure","console-error","console-warning","console-exception","warning","issue-marker","capture-started","capture-stopped"]);
+const failure = new Set(["network-failure","console-error","console-exception"]);
+const warning = new Set(["console-warning","warning"]);
 const interaction = new Set(["click","submit","change","page-ready"]);
 function clean(text,max=200) {
   return String(text ?? "").slice(0,max)
@@ -23,24 +24,33 @@ export function validateReport(input) {
   }
   return input;
 }
+export function eventKind(event) {
+  // Older TraceCue versions stored warning-level logs as console-error.
+  return event.kind === "console-error" && ["warning","warn"].includes(event.level) ?
+    "console-warning" : event.kind;
+}
+const times = event => Number.isInteger(event.occurrences) && event.occurrences > 0 ?
+  event.occurrences : 1;
 export function summarize(report) {
   return {
-    events:report.events.length,
-    errors:report.events.filter(e=>diagnostic.has(e.kind)).length,
-    interactions:report.events.filter(e=>interaction.has(e.kind)).length,
-    markers:report.events.filter(e=>e.kind === "issue-marker").length,
+    events:report.events.reduce((n,e)=>n+times(e),0),
+    errors:report.events.filter(e=>failure.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
+    warnings:report.events.filter(e=>warning.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
+    interactions:report.events.filter(e=>interaction.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
+    markers:report.events.filter(e=>eventKind(e) === "issue-marker").length,
     duration:Math.max(0,Math.round((report.stoppedAt-report.startedAt)/1000))
   };
 }
 export function buildPrompt(report,notes) {
   const events = report.events.filter(event => allowed.has(event.kind)).slice(0,120).map(event => ({
-    type:event.kind,
+    type:eventKind(event),
     second:Math.max(0,Number(((event.at-report.startedAt)/1000).toFixed(1))),
     element:clean(event.element,50),
     status:Number.isFinite(event.status) ? event.status : null,
     // Do not include request URLs, paths, raw console bodies, headers or video.
     // Only error type is transmitted unless the user manually adds approved details.
-    level:clean(event.level,20)
+    level:clean(event.level,20),
+    occurrences:times(event)
   }));
   const summary = summarize(report);
   return [
@@ -57,7 +67,8 @@ export function exportIssue(report,notes,analysis) {
   const text = analysis ? analysis.text : "No AI analysis performed.";
   const source = analysis ? analysis.source : "Not analyzed";
   const timeline = report.events.map(e => "- +" + ((e.at-report.startedAt)/1000).toFixed(1) +
-    "s " + e.kind + ": " + [e.element,e.status,e.message].filter(Boolean).join(" · "));
+    "s " + eventKind(e) + (times(e) > 1 ? " (×" + times(e) + ")" : "") +
+    ": " + [e.element,e.status,e.message].filter(Boolean).join(" · "));
   return [
     "# " + (report.title || "QA observation"),"",
     "## Tester observations","",notes || "(No notes provided)","",
