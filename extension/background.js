@@ -142,8 +142,20 @@ chrome.runtime.onMessage.addListener((message,sender) => {
 });
 chrome.tabs.onUpdated.addListener(async (tabId,change,tab) => {
   await ready;
-  if (session?.tabId === tabId && change.status === "complete" &&
-      /^https?:\/\//.test(tab.url || "")) await observe(tabId);
+  if (session?.tabId !== tabId) return;
+  // The tester consented only to the origin active when recording began.
+  // A redirect to another origin ends capture immediately instead of silently following it.
+  if (change.url) {
+    let oldOrigin, newOrigin;
+    try { oldOrigin = new URL(session.url).origin; newOrigin = new URL(change.url).origin; }
+    catch { newOrigin = null; }
+    if (!newOrigin || newOrigin !== oldOrigin) {
+      record("warning",{message:"Recording stopped because the tab navigated to a different origin."});
+      await stop();
+      return;
+    }
+  }
+  if (change.status === "complete" && /^https?:\/\//.test(tab.url || "")) await observe(tabId);
 });
 chrome.tabs.onRemoved.addListener(async tabId => { await ready; if (session?.tabId === tabId) await stop(); });
 chrome.debugger.onDetach.addListener(async (source,reason) => {
