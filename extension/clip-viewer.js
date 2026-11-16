@@ -1,4 +1,6 @@
 import {clipBounds,clipKey,clipFileName,createClipFromVideo} from "./clipper.js";
+import {issueDraft,issueJson} from "./issue-export.js";
+import {redactDiagnosticText} from "./diagnostics.js";
 // Independent local clip manager; full recording is never modified.
 export async function setupClipViewer({report,id,videoBlob,video,openDb,download,seekEvent,saveReport}){
   const $=x=>document.getElementById(x);
@@ -59,17 +61,54 @@ export async function setupClipViewer({report,id,videoBlob,video,openDb,download
         "No usable video interval";
       const state=document.createElement("small");state.className="clip-state";
       state.textContent=status.get(key)||(saved.has(key)?"Saved locally":"Not generated yet");
-      details.append(title,note,state);row.append(details);
+      // Each marked issue is an independently editable record, not a single
+      // session-wide title. Updates preserve the marker ID and stored clip key.
+      const titleLabel=document.createElement("label");
+      titleLabel.className="clip-field-label";titleLabel.textContent="Issue title";
+      const titleInput=document.createElement("input");
+      titleInput.className="clip-title-input";titleInput.maxLength=100;
+      titleInput.value=label(marker);
+      titleInput.setAttribute("aria-label","Issue clip title");
+      titleInput.addEventListener("change",async()=>{
+        marker.event.title=redactDiagnosticText(titleInput.value.trim()||"Untitled issue",100);
+        titleInput.value=marker.event.title;
+        if(Array.isArray(report.clips)){
+          for(const item of report.clips)if(item.markerId===idFor(marker))item.title=marker.event.title;
+        }
+        await saveReport(report);
+        render();
+      });
+      const notesLabel=document.createElement("label");
+      notesLabel.className="clip-field-label";notesLabel.textContent="Tester notes / expected versus actual";
+      const notesInput=document.createElement("textarea");
+      notesInput.className="clip-notes";notesInput.rows=2;notesInput.maxLength=1800;
+      notesInput.value=marker.event.testerNotes||"";
+      notesInput.placeholder="Expected: …  Actual: …  Steps to reproduce: …";
+      notesInput.addEventListener("change",async()=>{
+        marker.event.testerNotes=redactDiagnosticText(notesInput.value.trim(),1800);
+        await saveReport(report);
+      });
+      details.append(title,note,state,titleLabel,titleInput,notesLabel,notesInput);
+      row.append(details);
       const buttons=document.createElement("div");buttons.className="clip-controls";
       buttons.append(control("Seek",()=>seekEvent(marker.event)));
       if(saved.has(key)){
         buttons.append(control("Play clip",()=>preview(key)));
-        buttons.append(control("Save clip",()=>download(saved.get(key),clipFileName(id,idFor(marker)))));
+        buttons.append(control("Save clip",()=>download(saved.get(key),clipFileName(id,idFor(marker),label(marker)))));
       }else{
         const generate=control("Generate clip",()=>generateClip(marker));
         generate.disabled=busy||!range||!videoBlob;
         buttons.append(generate);
       }
+      const safeFileBase=()=>clipFileName(id,idFor(marker),label(marker)).replace(/\.webm$/,"");
+      buttons.append(control("Issue draft (.md)",()=>{
+        const markdown=issueDraft(report,marker.event);
+        download(new Blob([markdown],{type:"text/markdown"}),safeFileBase()+".md");
+      }));
+      buttons.append(control("Issue data (.json)",()=>{
+        const json=issueJson(report,marker.event);
+        download(new Blob([JSON.stringify(json,null,2)],{type:"application/json"}),safeFileBase()+".json");
+      }));
       row.append(buttons);container.append(row);
     }
     $("retryClips").hidden=!videoBlob||markers.every(x=>saved.has(keyFor(x)));
