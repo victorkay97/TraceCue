@@ -18,7 +18,13 @@
     "type": "module"
   },
   "action": {
-    "default_title": "TraceCue — open companion"
+    "default_title": "TraceCue — open companion",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
   },
   "commands": {
     "mark-issue": {
@@ -31,5 +37,11 @@
   },
   "side_panel": {
     "default_path": "sidepanel.html"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
   }
 }
