@@ -45,7 +45,7 @@ export function issueDraft(report,marker){
   return lines.join("\n");
 }
 export function issueJson(report,marker){
-  const bounds=clipBounds(report,marker);
+  const bounds=issueWindow(report,marker);
   return {
     schema:"tracecue-issue-v1",
     sessionId:String(report.id||"").slice(0,100),

@@ -14,7 +14,7 @@ export function clipBounds(report,marker,durationSeconds=Infinity) {
   const edited=marker.clipStartSecond!==undefined || marker.clipEndSecond!==undefined;
   if(edited && (!Number.isFinite(marker.clipStartSecond)||!Number.isFinite(marker.clipEndSecond)))
     throw new Error("Both custom clip boundaries must be valid numbers");
-  const start=edited?marker.clipStartSecond:Math.max(0,markerSecond-lookback);
+  const start=edited?marker.clipStartSecond:Math.max(0,Math.min(markerSecond,limit)-lookback);
   const end=Math.min(edited?marker.clipEndSecond:markerSecond+postBuffer,limit);
   if(start<0 || !Number.isFinite(start) || end-start<0.05 || start>=limit)
     throw new Error("Issue clip window has no usable recorded video");

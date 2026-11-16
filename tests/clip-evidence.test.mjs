@@ -25,10 +25,10 @@ test("edited boundaries change the evidence selection, not just the displayed vi
  assert.deepEqual(events.map(e=>e.kind),["console-debug","click"]);
 });
 test("a grouped console warning counts only repeated occurrences inside the interval",()=>{
- const events=clipEvents(report,{...marker,clipStartSecond:15,clipEndSecond:16.5});
+ const events=clipEvents(report,{...marker,clipStartSecond:15,clipEndSecond:15.7});
  assert.equal(events.length,1);
  assert.equal(events[0].occurrences,1);
- assert.equal(events[0].second,16.2);
+ assert.equal(events[0].second,15.2);
 });
 test("first/last source flags remain filterable",()=>{
  assert.equal(evidenceCategory("console-info"),"console");
