@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-16 — First Firebase cloud response: inference source fix
+
+- A live Firebase cloud analysis returned SDK `in_cloud`, but TraceCue erroneously compared it against uppercase `IN_CLOUD` and discarded the response.
+- Added strict source validation for the documented lowercase `in_cloud` / `on_device` values.
+- Added regression tests that accept correct sources and reject incorrect/fallback sources.
+- Cloud inference is indicated by the reported source, but visible investigation output still needs verification after this fix.
+
+
 ## 2026-11-16 — Evidence-linked Firebase Intelligence
 
 - Added stable evidence reference IDs, purpose-limited AI prompts, an explicit environment-log inclusion setting and clickable evidence links.
