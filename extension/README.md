@@ -1,25 +1,33 @@
-# TraceCue Companion
+# TraceCue Companion 0.5 — Chrome developer preview
 
-This is a **developer prototype**. Load the entire extension directory unpacked through Chrome Desktop at chrome://extensions.
+**User-started QA recording, issue-focused video and technical evidence.**
 
-## Usage
+TraceCue is not yet on the Chrome Web Store. Begin with the [0.5 developer installation guide](../docs/INSTALL.md), or open the [fictional Studio demo](https://tracecue-studio-preview.vercel.app/app.html?demo=1) without installation.
 
-1. Open an HTTP(S) page you own or have explicit permission to test. Use a disposable account and non-sensitive data.
-2. Click the TraceCue toolbar icon to **start**. The icon displays REC while active.
-3. Reproduce the issue. Press **Ctrl+Shift+9** (macOS: Command+Shift+9) to add an issue marker; browser shortcuts can be changed at chrome://extensions/shortcuts.
-4. Click the icon again to **stop**. TraceCue opens a local review page.
-5. Review the captured video and events. Edit tester notes. Download a session JSON, an issue draft, and optionally a video.
-6. In TraceCue Studio, import the JSON for local review and optional Firebase analysis.
+## The tester's normal workflow
 
-## Capabilities and boundaries
+1. Install the unpacked extension and pin it in Chrome.
+2. Open an HTTP(S) website you are authorized to test. Click the toolbar icon to open the native sidebar.
+3. Select whether to include verbose console.log/info/debug messages (off by default); click **Start recording** explicitly.
+4. Name an issue and mark a time interval. The session recording continues. Mark as many issues as necessary.
+5. Click **Stop & review**. Check full video and issue-specific clips/logs; adjust start/end points and add actual-versus-expected notes.
+6. Choose **Continue in Studio**. Review the consent message, select the local or approved hosted destination, and explicitly confirm import in Studio. This handoff uses browser-window messaging and has an 80 MB WebM cap. Otherwise download JSON and WebM and import manually.
+7. Search HTTP failures or console messages, investigate a selected issue locally or with explicitly consented Firebase cloud AI, and verify the draft before sharing it.
 
-- Captures the selected tab's video using Chrome tabCapture and an offscreen document, when supported.
-- Listens for permitted click/change/submit event categories, not input values or typed text.
-- Tries Chrome debugger APIs for console and failed network diagnostics. Debugger access may conflict with DevTools.
-- No automatic remote upload, cloud storage, credential capture, HTTP payload capture or per-keystroke logging.
-- Does not claim that recorded events are a complete or deterministic reproduction recipe.
-- Console messages and recordings can still contain secrets; never use real customer or payment data.
+## What stays local
 
-## To validate on a real machine
+Complete recordings, technical event reports, clips, interrupted-session checkpoints and search history are stored in the extension's browser-origin storage. The extension does not automatically upload evidence. The optional Studio transfer has no server upload; cloud AI actions are **separate**, explicit and reviewable. Screenshots and console messages may still contain secrets despite masking.
 
-Test a successful recording, denied/unsupported video capture, debugger attach failure, page navigation, tab closure, hotkey issue marker, video export, JSON import and review. Browser behavior has not been verified in the assistant's isolated code environment.
+## Recovery, privacy, and limitations
+
+- **Session library** reopens completed reports.
+- **Recover interrupted** attempts to salvage checkpointed events and video chunks. Salvaged media may be incomplete or unplayable.
+- **Deleting a session** removes its video and saved clips from the local reviewer's indexed database.
+- **Chrome debugger** permission may show a warning, conflict with an attached DevTools session, or be blocked in some environments.
+- In-tab mascot controls are removed before tab capture; the sidebar remains outside the captured video. Check the saved WebM on a real browser to verify this.
+- Chrome's separate popup cannot guarantee always-on-top.
+- Video redaction is not automatic. Do not record sensitive real-world sites or accounts.
+
+**No signup or cloud workspace is included in this developer preview.**
+
+Full acceptance instructions: [TraceCue 0.5 release](../docs/RELEASE_0_5.md).

@@ -2,7 +2,7 @@
 
 **Every bug has a trail.** TraceCue is a permission-based QA evidence and intelligence platform: a Chrome companion captures an authorized testing session; TraceCue Studio helps reviewers inspect what happened, understand defects, and send actionable reports to their existing engineering tools.
 
-> **Status:** Active development for Firebase #BuildHybridAI 2026. Original tab capture and text inference sources (`on_device`, `in_cloud`) were previously verified in Chrome. New TraceCue 0.4 capture UI, clip renderer, recovery, annotations, issue-scoped queries and visual cloud inference require live browser acceptance; compilation does not prove end-to-end video behavior.
+> **Status:** Active development for Firebase #BuildHybridAI 2026. Original tab capture and text inference sources (`on_device`, `in_cloud`) were previously verified in Chrome. New TraceCue 0.5 capture and first-use experience, clip renderer, recovery, annotations, issue-scoped queries and visual cloud inference require live browser acceptance; compilation does not prove end-to-end video behavior.
 
 ## Product boundaries
 
@@ -28,7 +28,13 @@ npm install
 npm run dev
 ~~~
 
-Open the Vite URL and click **Try fictional demo**, or import the redacted JSON plus the full WebM from the extension. Click any evidence event to seek to the matching video moment. For a controlled recorder test, open `http://127.0.0.1:5173/qa-fixture.html` while Studio's Vite dev server is running; see the setup guide. To enable AI, configure your own Firebase web app with Firebase AI Logic and App Check. See [the setup guide](docs/SETUP.md).
+Open the Vite homepage at `/` and use the no-account demo at `/app.html?demo=1`, or open Studio at `/app.html` and import a redacted session JSON plus its full WebM. Click any evidence event to seek to the matching video moment. For a controlled recorder test, open `http://127.0.0.1:5173/qa-fixture.html` while Studio's Vite dev server is running; see the setup guide. To enable AI, configure your own Firebase web app with Firebase AI Logic and App Check. See [the setup guide](docs/SETUP.md).
+
+## TraceCue 0.5 first use and local handoff
+
+TraceCue now has a responsive homepage, a standalone Studio route, a skippable onboarding guide and clearer private-on-device vs explicit-cloud AI choices. On the extension's review page, **Continue in Studio** can securely offer a user-reviewed session and a WebM up to 80 MB directly to a selected Studio browser window with a one-time handshake. No account or server upload is needed for that handoff; manual JSON/WebM import remains the reliable fallback until Chrome acceptance testing.
+
+For new testers, use the [developer installation guide](docs/INSTALL.md). For a public release, see the [store readiness checklist](docs/WEB_STORE_READINESS.md), including accurate permissions and privacy disclosures.
 
 ## Privacy rules
 
@@ -40,7 +46,7 @@ Apache License 2.0; see [LICENSE](LICENSE). See [third-party decisions](docs/THI
 
 ## TraceCue Studio public demo
 
-[Open the fictional Studio demonstration](https://tracecue-studio-preview.vercel.app/). Vercel confirmed that the development-branch build is ready. The public demo includes fictional QA evidence and no private recordings. It does **not** yet have production Firebase credentials or App Check domain registration; local Firebase hybrid inference was verified separately. See [the current acceptance workflow](docs/V2_WORKFLOW.md) before claiming the newly added clipping/companion features are browser-verified. See also the [QA specialist's product roadmap](docs/QA_WORKSPACE_ROADMAP.md) for prioritized research, usability and reliability work. See [0.4 release notes](docs/RELEASE_0_4.md).
+[Open the TraceCue homepage](https://tracecue-studio-preview.vercel.app/) or [launch the fictional Studio demonstration](https://tracecue-studio-preview.vercel.app/app.html?demo=1). Vercel confirmed that the development-branch build is ready. The public demo includes fictional QA evidence and no private recordings. It does **not** yet have production Firebase credentials or App Check domain registration; local Firebase hybrid inference was verified separately. See [the current acceptance workflow](docs/V2_WORKFLOW.md) before claiming the newly added clipping/companion features are browser-verified. See also the [QA specialist's product roadmap](docs/QA_WORKSPACE_ROADMAP.md) for prioritized research, usability and reliability work. See [TraceCue 0.5 first-use release notes](docs/RELEASE_0_5.md) and [Chrome Web Store readiness](docs/WEB_STORE_READINESS.md).
 
 ## Hackathon progress
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-16 — TraceCue 0.5 First-Use Experience & Launch Readiness
+
+- Added a dedicated responsive landing page with an interactive product journey, fictional demo, privacy disclosure, FAQs, and honest developer-preview installation links.
+- Preserved Studio at `/app.html`, with automatic fictional sample import at `/app.html?demo=1`.
+- Introduced skippable first-run onboarding and a manual local Chrome AI readiness check; Firebase cloud analysis still requires distinct consent.
+- Added explicit extension-to-Studio browser-window handoff: a one-time origin-bound 192-bit token, review-before-transfer, confirmation-before-import, no server upload, and <=80 MB WebM with manual fallback.
+- Created Chrome-compatible 16/32/48/128 icons, tests for PNG correctness, a developer installation guide, release acceptance plan, and Web Store readiness checklist.
+- Public Web Store publishing, user authentication, cloud sync, team roles and full Chrome acceptance testing remain incomplete.
+
+
 ## 2026-11-16 — Issue clip editor and time-scoped diagnostic workspace
 
 - Every marker now supports selectable 0/5/10-second post-capture buffer, with 5 seconds selected by default; older markers retain a zero-second buffer.

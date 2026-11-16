@@ -57,6 +57,12 @@ Last reviewed: November 16, 2026. This document identifies current development s
 | Deploy | Static fictional Studio demo | Vercel READY | Production Firebase domain/env |
 | Reliability | Incremental crash-resistant video storage | Built: local chunk journal and explicit partial recovery, Chrome pending | Force-close and inspect recovered video |
 
+## TraceCue 0.5 first-use and launch readiness
+
+Implemented remotely: marketing homepage, no-account fictional demo, skippable guide, on-device/cloud AI decision aids, user-initiated local cross-window Studio handoff, Chrome extension icons, and distribution/privacy documentation. **Still awaiting desktop Chrome acceptance:** cross-window WebM transfer, actual capture reliability, UI interaction, store compliance and production Firebase domain validation.
+
+Deliberately deferred: mandatory authentication, billing, cloud sync, full team workspaces, and premature OAuth integrations.
+
 ## TraceCue 0.4 implementation update (November 16, 2026)
 
 Built in the development branch, subject to real Chrome acceptance unless otherwise indicated:

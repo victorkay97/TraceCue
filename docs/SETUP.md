@@ -1,17 +1,16 @@
 # Local setup (Windows 11 / PowerShell)
 
-## 1. Load TraceCue Companion
+## 1. Load TraceCue Companion 0.5
 
-1. Clone this repository, or download its source as a ZIP.
-2. Open Chrome Desktop at chrome://extensions and enable Developer Mode.
-3. Choose **Load unpacked** and select the extension/ directory.
-4. Open a test application you control or are authorized to inspect.
-5. Click TraceCue's toolbar icon to start capture. A REC badge appears.
-6. Reproduce a defect and press Ctrl+Shift+9 to mark it if desired.
-7. Click the toolbar icon again to stop. Review the evidence locally.
-8. Export the JSON, and optionally the video / Markdown issue draft.
+1. Clone the development branch: `git clone --branch feat/tracecue-foundation https://github.com/victorkay97/TraceCue.git`.
+2. In desktop Chrome open `chrome://extensions`, enable **Developer Mode** and choose **Load unpacked** → the repository's `extension/` directory.
+3. Click the TraceCue toolbar icon on an HTTP(S) test page you are authorized to inspect. This opens the **sidebar**, not an automatic recording.
+4. Choose **Start recording** inside the sidebar. Name an issue, choose lookback/buffer, and select **Save titled issue marker** when a problem appears.
+5. Select **Stop & review**. The viewer holds your full recording, separate editable issue clips and technical event logs.
+6. If available, choose **Continue in Studio**, review the data, explicitly authorize the chosen local or hosted Studio origin, then confirm the import in Studio. Larger videos can be manually imported.
+7. For recordings that were interrupted, use **Recover interrupted**. For completed recordings, use the **Session library**.
 
-Do not test with real credentials or sensitive content. Chrome's debugger permission presents a warning. If DevTools is already attached, some diagnostics may be unavailable.
+Do not test with real credentials or sensitive content. Chrome's debugger permission can display a warning; DevTools attachment may conflict. All newly added browser functions need testing on the actual target Chrome installation. See [developer installation](INSTALL.md).
 
 ## Controlled QA fixture (recommended first test)
 
@@ -26,14 +25,14 @@ Expected: a deliberately failed POST request, a console error, four repeated war
 ## 2. Run TraceCue Studio
 
 ~~~powershell
-git clone https://github.com/victorkay97/TraceCue.git
+git clone --branch feat/tracecue-foundation https://github.com/victorkay97/TraceCue.git
 cd TraceCue\studio
 Copy-Item .env.example .env.local
 npm install
 npm run dev
 ~~~
 
-Import the extension JSON, or use **studio/samples/example-session.json** to inspect the UI with explicitly *fictional* evidence.
+The new product homepage is at `/`; Studio is at `/app.html` and a one-click fictional session opens at `/app.html?demo=1`. Import extension evidence locally by confirmed handoff or manual JSON+WebM files. No user account is required.
 
 ## 3. Configure Firebase hybrid inference
 
