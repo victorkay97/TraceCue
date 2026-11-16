@@ -91,7 +91,7 @@ async function restoreCompanionIfSafe(tabId,originalUrl){
     await chrome.scripting.executeScript({target:{tabId},files:["companion.js"]});
   }catch{ /* A closed or redirected tab must not be reinjected. */ }
 }
-async function start(tab, suppliedStreamId=null) {
+async function start(tab, suppliedStreamId=null, captureInfoLogs=false) {
   if (session) return;
   if (!tab?.id || !/^https?:\/\//.test(tab.url || "")) {
     console.warn("TraceCue supports user-authorized HTTP(S) tabs only.");
@@ -101,7 +101,7 @@ async function start(tab, suppliedStreamId=null) {
     id:"tc-" + Date.now(),tabId:tab.id,title:scrub(tab.title,160),
     url:cleanUrl(tab.url),startedAt:Date.now(),events:[],droppedEvents:0,
     environment:{userAgent:navigator.userAgent,platform:navigator.platform || "unknown"},
-    video:false,videoStartedAt:null,attached:false,requests:new Map(),contexts:new Map()
+    video:false,videoStartedAt:null,attached:false,captureInfoLogs:captureInfoLogs===true,requests:new Map(),contexts:new Map()
   };
   await persist();
   try{
@@ -273,8 +273,20 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
     }
     if(msg.action==="status"){
       const activeOnTab=!!session && session.tabId===tab?.id;
+      const now=Date.now();
+      const marked=session?.events.filter(e=>e.kind==="issue-marker")||[];
+      const suggestions=activeOnTab?session.events
+        .filter(e=>["network-failure","console-error","console-exception"].includes(e.kind))
+        .filter(e=>e.sourceHint!=="browser-extension"&&e.sourceHint!=="isolated-world")
+        .filter(e=>now-e.at<=60000&&!marked.some(mark=>Math.abs(mark.at-e.at)<=3000))
+        .slice(-5).reverse().map(e=>({
+          title:e.kind==="network-failure"?
+            ("HTTP "+(e.status||"request")+" "+(e.method||"")+" failure"):
+            e.kind==="console-exception"?"Uncaught JavaScript exception":"Console error",
+          second:Math.max(0,(e.at-session.startedAt)/1000)
+        })): [];
       return {
-        ok:true,recording:!!session,activeOnTab,
+        ok:true,recording:!!session,activeOnTab,suggestions,captureInfoLogs:session?.captureInfoLogs===true,
         startedAt:activeOnTab?session.startedAt:null,tabId:session?.tabId??null,
         markers:activeOnTab ? session.events.filter(e=>e.kind==="issue-marker").slice(-40)
           .map(({markerId,title,lookbackSeconds,postBufferSeconds,at})=>({markerId,title,lookbackSeconds,postBufferSeconds,at})): []
@@ -283,7 +295,7 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
     if(msg.action==="start"){
       if(!tab || !/^https?:\/\//.test(tab.url||""))return {ok:false,error:"Choose an authorized website tab"};
       if(session)return {ok:false,error:"Another recording is already active"};
-      return start(tab,typeof msg.streamId==="string"?msg.streamId:null);
+      return start(tab,typeof msg.streamId==="string"?msg.streamId:null,msg.captureInfoLogs===true);
     }
     if(msg.action==="stop"){
       if(!session || session.tabId!==tab?.id)return {ok:false,error:"No active recording for this tab"};
@@ -401,6 +413,7 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
              ["error","warning","warn","assert","log","info","debug"].includes(params.type)) {
     const context = session.contexts.get(params.executionContextId);
     const stackUrl = params.stackTrace?.callFrames?.find(frame=>frame.url)?.url || "";
+    if(["log","info","debug"].includes(params.type)&&session.captureInfoLogs!==true)return;
     const kind = ["warning","warn"].includes(params.type)?"console-warning":
       ["log","info"].includes(params.type)?"console-info":
       params.type==="debug"?"console-debug":"console-error";

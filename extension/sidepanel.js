@@ -11,6 +11,29 @@ async function resolveTab(){
 }
 const clock=ms=>{const s=Math.floor(Math.max(0,ms)/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");};
 let lastMarkersFingerprint="";
+let lastSuggestionsFingerprint="";
+function renderSuggestions(items=[]){
+  const signature=JSON.stringify(items);
+  if(signature===lastSuggestionsFingerprint)return;
+  lastSuggestionsFingerprint=signature;
+  const area=$("suggestionList");area.replaceChildren();
+  if(!items.length){
+    const p=document.createElement("p");p.className="hint";p.textContent="No recent unmarked failure signals.";
+    area.append(p);return;
+  }
+  for(const item of items){
+    const button=document.createElement("button");
+    button.type="button";button.className="suggestion-button";
+    button.textContent=item.title+" · +"+item.second.toFixed(1)+"s";
+    button.addEventListener("click",()=>{
+      $("issueTitle").value=item.title;
+      $("message").textContent="Suggestion loaded. Edit the title, then choose Save titled issue marker.";
+      $("issueTitle").focus();
+    });
+    area.append(button);
+  }
+}
+
 function renderIssueHistory(markers=[],startedAt=null){
   const fingerprint=JSON.stringify(markers);
   if(fingerprint===lastMarkersFingerprint)return;
@@ -43,6 +66,8 @@ async function refresh(){
   $("start").disabled=!!info?.recording;
   $("stop").disabled=!recording;$("mark").disabled=!recording;
   $("timer").textContent=clock(recording?Date.now()-info.startedAt:0);
+  $("captureInfoLogs").disabled=!!info?.recording;
+  renderSuggestions(info?.suggestions||[]);
   renderIssueHistory(info?.markers||[],info?.startedAt??null);
 }
 document.querySelectorAll("[data-seconds]").forEach(button=>button.addEventListener("click",()=>{
@@ -59,7 +84,7 @@ $("start").addEventListener("click",async()=>{
     if(!tab)throw Error("Select an authorized website tab");
     $("message").textContent="Starting tab capture…";
     const streamId=await chrome.tabCapture.getMediaStreamId({targetTabId:tab.id});
-    const result=await send("start",{streamId});
+    const result=await send("start",{streamId,captureInfoLogs:$("captureInfoLogs").checked});
     if(!result?.ok)throw Error(result?.error||"Could not start");
     $("message").textContent="Recording continuously. Mark issues without stopping.";
   }catch(e){$("message").textContent="Start failed: "+e.message;}
@@ -98,6 +123,9 @@ $("window").addEventListener("click",async()=>{
 });
 $("recover").addEventListener("click",async()=>{
   await chrome.tabs.create({url:chrome.runtime.getURL("recovery.html")});
+});
+$("library").addEventListener("click",async()=>{
+  await chrome.tabs.create({url:chrome.runtime.getURL("library.html")});
 });
 $("review").addEventListener("click",async()=>{
   const x=await chrome.storage.local.get("lastReportId");
