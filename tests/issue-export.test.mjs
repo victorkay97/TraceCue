@@ -37,3 +37,29 @@ test("issue exports exclude tokens in captured messages",()=>{
  const first=issueJson(report,report.events[2]);
  assert.doesNotMatch(JSON.stringify(first),/token=abc/);
 });
+
+test("post-marker buffer includes later console signals in the same isolated issue",()=>{
+ const marked={...report.events[2],postBufferSeconds:15,expectedBehavior:"Name should match",
+   actualBehavior:"Name differs",severity:"major",reproducibility:"intermittent"};
+ const data=issueJson(report,marked);
+ assert.equal(data.clip.postBufferSeconds,15);
+ assert.equal(data.clip.endSecond,24);
+ assert.equal(data.expectedBehavior,"Name should match");
+ assert.equal(data.severity,"major");
+ assert.equal(data.reproducibility,"intermittent");
+ const draft=issueDraft(report,marked);
+ assert.match(draft,/## Expected behavior/);
+ assert.match(draft,/Severity \(tester-rated\): major/);
+});
+test("edited timeline changes exports and excludes unrelated issue evidence",()=>{
+ const edited={...report.events[5],clipStartSecond:40,clipEndSecond:46,postBufferSeconds:10};
+ const data=issueJson(report,edited);
+ assert.equal(data.clip.manuallyTrimmed,true);
+ assert.equal(data.clip.startSecond,40);
+ assert.equal(data.clip.endSecond,46);
+ assert.equal(data.evidence.some(x=>x.kind==="console-error"),true);
+ assert.equal(data.evidence.some(x=>x.kind==="network-failure"),false);
+ const draft=issueDraft(report,edited);
+ assert.match(draft,/Time-aligned console, network, actions and environment/);
+ assert.match(draft,/Bearer \[REDACTED\]/);
+});
