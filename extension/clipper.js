@@ -73,6 +73,14 @@ export async function createClipFromVideo(videoBlob,range,onProgress=()=>{}) {
     stream=element.captureStream();
     await element.play();
     if(!stream.getVideoTracks().length)throw new Error("No captured video track available for clip generation");
+    // Warm up captureStream, then rewind before encoding so the first frame
+    // of the issue interval is not lost while Chrome creates the track.
+    element.pause();
+    if(Math.abs(element.currentTime-start)>.015){
+      const rewound=once(element,"seeked",20000);
+      element.currentTime=start;
+      await rewound;
+    }
     const mime=MediaRecorder.isTypeSupported("video/webm;codecs=vp8") ?
       "video/webm;codecs=vp8" : "video/webm";
     recorder=new MediaRecorder(stream,{mimeType:mime});
@@ -83,6 +91,7 @@ export async function createClipFromVideo(videoBlob,range,onProgress=()=>{}) {
       recorder.onerror=e=>reject(e.error||new Error("Clip encoding failed"));
     });
     recorder.start(500);
+    await element.play();
     await new Promise((resolve,reject)=>{
       const deadline=setTimeout(()=>{cleanup();reject(new Error("Clip rendering timed out"));},Math.ceil((end-start+10)*1000));
       const tick=()=>{
