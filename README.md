@@ -17,7 +17,7 @@ TraceCue **is not** a Jira, Linear, or ClickUp clone. It owns **sessions, eviden
 
 ## Development
 
-Chrome extension: open `chrome://extensions`, enable Developer mode, select **Load unpacked**, and choose the **extension** directory. Click TraceCue's toolbar icon on an authorized HTTP(S) tab to open its sidebar and floating in-page mascot. Start and stop the recording explicitly; mark the preceding 15/30/60/120 seconds as independent issue clips. The viewer keeps the full session intact and renders clip WebMs locally; clip rendering plays the selected interval in real time. Local recordings never upload themselves.
+Chrome extension: open `chrome://extensions`, enable Developer mode, select **Load unpacked**, and choose the **extension** directory. Click TraceCue's toolbar icon on an authorized HTTP(S) tab to open its sidebar and pre-recording floating mascot. **During recording, the in-page mascot is removed before capture starts**, so it cannot appear in the saved tab video; the native Chrome sidebar and optional separate floating controls window remain available. Start and stop explicitly; mark the preceding 15/30/60/120 seconds as independently titled issue clips. The viewer keeps the full session intact, supports per-clip title/notes editing and independent Markdown/JSON issue drafts, and renders individual WebM clips locally; clip rendering plays the selected interval in real time. A separate Chrome popup cannot promise always-on-top, but sidebar controls remain out of the tab video. Local recordings never upload themselves.
 
 TraceCue Studio (Node 20+):
 
