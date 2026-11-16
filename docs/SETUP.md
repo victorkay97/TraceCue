@@ -13,6 +13,16 @@
 
 Do not test with real credentials or sensitive content. Chrome's debugger permission presents a warning. If DevTools is already attached, some diagnostics may be unavailable.
 
+## Controlled QA fixture (recommended first test)
+
+Rather than record public or sensitive websites, run TraceCue Studio locally and open:
+
+    http://127.0.0.1:5173/qa-fixture.html
+
+Start TraceCue on that page. Click **Simulate failed save**, **Trigger repeated console warnings**, **Trigger an uncaught exception**, and optionally **Ctrl+Shift+9** to mark an issue. Stop recording and review the video and timeline.
+
+Expected: a deliberately failed POST request, a console error, four repeated warnings eligible for grouping, and a JavaScript exception. The exact event counts depend on Chrome and other extensions. These are synthetic test failures, not an actual customer application defect.
+
 ## 2. Run TraceCue Studio
 
 ~~~powershell
