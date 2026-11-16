@@ -95,7 +95,7 @@ export async function setupClipViewer({
   function addEvidencePanel(container,marker){
     const details=document.createElement("details");details.className="clip-evidence";
     const summary=document.createElement("summary");
-    const items=clipEvents(report,marker.event,{durationSeconds:duration(),limit:250});
+    const items=clipEvents(report,marker.event,{durationSeconds:duration()});
     summary.textContent="Technical evidence · "+items.length+" captured event"+(items.length===1?"":"s");
     details.append(summary);
     const note=caption("Video-aligned, redacted metadata. Includes console output, network responses/failures and actions actually captured; no request bodies, authentication headers or cookies.");
@@ -116,6 +116,10 @@ export async function setupClipViewer({
     search.setAttribute("aria-label","Search captured issue logs");
     filters.append(select,search);details.append(filters);
     const list=document.createElement("div");list.className="clip-evidence-list";details.append(list);
+    const more=button("Show more captured events",()=>{visibleLimit+=150;draw();});
+    more.classList.add("clip-log-more");
+    details.append(more);
+    let visibleLimit=150;
     const draw=()=>{
       list.replaceChildren();
       const query=search.value.trim().toLowerCase();
@@ -127,7 +131,8 @@ export async function setupClipViewer({
         const p=document.createElement("p");p.className="muted tiny";p.textContent="No captured events for this filter and time window.";
         list.append(p);
       }
-      for(const e of visible){
+      more.hidden=visible.length<=visibleLimit;
+      for(const e of visible.slice(0,visibleLimit)){
         const row=button("+"+e.clipSecond.toFixed(1)+"s · "+eventCaption(e),()=>{
           const captured=report.events.find((event,index)=>"EV"+String(index+1).padStart(4,"0")===e.ref);
           if(captured)seekEvent({...captured,at:e.at});
@@ -142,8 +147,8 @@ export async function setupClipViewer({
         list.append(row);
       }
     };
-    select.addEventListener("change",draw);
-    search.addEventListener("input",draw);
+    select.addEventListener("change",()=>{visibleLimit=150;draw();});
+    search.addEventListener("input",()=>{visibleLimit=150;draw();});
     details.addEventListener("toggle",()=>{
       if(details.open&&list.childElementCount===0)draw();
     });

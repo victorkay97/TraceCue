@@ -3,7 +3,7 @@ import {issueWindow,clipEvents,eventCaption} from "./clip-evidence.js";
 
 // Each issue owns its identity, title and lookback interval, even if two clips
 // overlap. This export never includes the full video or arbitrary raw payloads.
-export function issueEvidence(report,marker,limit=200){
+export function issueEvidence(report,marker,limit=Infinity){
   return clipEvents(report,marker,{limit});
 }
 export function issueDraft(report,marker){

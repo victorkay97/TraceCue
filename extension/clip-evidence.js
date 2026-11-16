@@ -14,7 +14,7 @@ export function issueWindow(report,marker,duration=recordedDuration(report)){
     startMs:origin+bounds.start*1000,endMs:origin+bounds.end*1000};
 }
 const clean=(v,max=200)=>redactDiagnosticText(v,max);
-export function clipEvents(report,marker,{limit=200,durationSeconds}={}) {
+export function clipEvents(report,marker,{limit=Infinity,durationSeconds}={}) {
   const window=issueWindow(report,marker,durationSeconds??recordedDuration(report));
   const result=[];
   for(const [index,event] of (report.events||[]).entries()){
