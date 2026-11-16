@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TraceCue Companion — Development",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "User-initiated QA recorder for permitted testing sessions. Evidence remains on your device.",
   "minimum_chrome_version": "116",
   "permissions": [
