@@ -12,8 +12,13 @@
     return [name, /^[a-z-]{1,20}$/.test(kind) ? kind : "", /^[a-z-]{1,20}$/.test(role) ? role : ""].filter(Boolean).join(" ");
   };
   const send = (kind, element) => {
-    try { chrome.runtime.sendMessage({target:"background",kind:"interaction",event:{kind,element,at:Date.now()}}); }
-    catch { /* Extension may have stopped */ }
+    try {
+      // A content script may outlive its extension worker after reload or update.
+      // Handle rejected messages rather than injecting noisy unchecked lastError logs.
+      chrome.runtime.sendMessage({
+        target:"background",kind:"interaction",event:{kind,element,at:Date.now()}
+      }).catch(() => {});
+    } catch { /* Extension may have stopped synchronously. */ }
   };
   document.addEventListener("click", e => send("click",describe(e.target)), true);
   document.addEventListener("submit", e => send("submit",describe(e.target)), true);
