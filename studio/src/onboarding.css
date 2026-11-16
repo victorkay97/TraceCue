@@ -1,0 +1,9 @@
+.tc-guide{position:fixed;right:24px;bottom:24px;z-index:100000;max-width:370px;width:calc(100vw - 32px);background:#183138;border:1px solid #61817d;border-radius:18px;padding:24px;color:#e6f2ee;box-shadow:0 28px 80px #0009,0 0 0 1px #b6e7d51c}
+.tc-guide[hidden]{display:none}.guide-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.guide-top span{font-size:9px;font-weight:800;color:#a0d5c8;letter-spacing:.15em}.guide-top button{width:27px;height:27px;display:grid;place-items:center;background:transparent;color:#a8c2c0;border:0;font-size:22px}
+.guide-progress{display:flex;gap:5px;margin:18px 0 20px}.guide-progress span{height:3px;background:#39575b;border-radius:3px;flex:1}.guide-progress span.complete{background:#b8e6db}
+.tc-guide h3{font:700 23px/1.2 "Space Grotesk",system-ui,sans-serif;letter-spacing:-.04em;margin:0 0 12px}
+.tc-guide p{font:12px/1.8 "DM Sans",system-ui,sans-serif;color:#b0c9c7;margin:0 0 24px}.guide-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.guide-actions button{font-size:11px;border:1px solid #55716e;border-radius:8px;padding:9px 11px;font-weight:750}
+.guide-actions .guide-ghost{background:transparent;color:#acc9c4}.guide-actions .guide-main{background:#bce7da;color:#193d3d;margin-left:auto;border-color:#bce7da}
+@media(max-width:580px){.tc-guide{bottom:12px;right:12px;padding:18px}.guide-actions button{padding:8px}}
+@media(prefers-reduced-motion:reduce){.tc-guide{animation:none}}
