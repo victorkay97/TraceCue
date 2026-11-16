@@ -34,10 +34,11 @@ code{color:#c3dfe7}
   <button id="mismatch" data-testid="fixture-name-mismatch" class="secondary">2. Simulate name mismatch</button>
   <button id="warn" data-testid="fixture-warnings" class="secondary">3. Trigger repeated console warnings</button>
   <button id="throw" data-testid="fixture-exception" class="secondary">4. Trigger an uncaught exception</button>
+  <button id="info" data-testid="fixture-log-success" class="secondary">5. Trace console info & successful fetch</button>
   <button id="clear" data-testid="fixture-reset" class="secondary">Reset visual status</button>
 </div>
 <div id="status" role="status" aria-live="polite">Ready. Start TraceCue first, then click the actions above.</div>
-<div style="padding-top:15px;font-size:13px;color:#b2dfd6">Actions triggered: <strong id="audit-count">Save 0 · Name mismatch 0 · Warning batch 0 · Exception 0</strong></div>
+<div style="padding-top:15px;font-size:13px;color:#b2dfd6">Actions triggered: <strong id="audit-count">Save 0 · Name mismatch 0 · Warning batch 0 · Exception 0 · Success trace 0</strong></div>
 </section>
 <section class="panel">
 <h2>Expected evidence</h2>
@@ -45,17 +46,18 @@ code{color:#c3dfe7}
 <p><strong>Name mismatch:</strong> a fictional profile displays the wrong name (Expected: Ada, actual: Sam) and emits a labelled console error, without reading input values.</p>
 <p><strong>Warnings:</strong> several identical warning messages, eligible for grouping as one entry with multiple occurrences.</p>
 <p><strong>Uncaught exception:</strong> one JavaScript exception, not merely a warning.</p>
+<p><strong>Successful trace:</strong> an HTTP 200 response to a fictional public fixture JSON and console.log / info / debug messages without secrets.</p>
 <p>Use <code>Ctrl+Shift+9</code> to add an issue marker during recording. Stop TraceCue and compare these events with the recorded video.</p>
 </section>
 </main>
 <script>
 const status=document.getElementById("status");
-const counts={fail:0,mismatch:0,warn:0,exception:0};
+const counts={fail:0,mismatch:0,warn:0,exception:0,info:0};
 function acknowledge(name) {
   counts[name]++;
   document.getElementById("audit-count").textContent=
     "Save "+counts.fail+" · Name mismatch "+counts.mismatch+" · Warning batch "+counts.warn+
-    " (4 console.warn each) · Exception "+counts.exception;
+    " (4 console.warn each) · Exception "+counts.exception+" · Success trace "+counts.info;
 }
 document.getElementById("fail").addEventListener("click",async()=>{
   acknowledge("fail");
@@ -86,6 +88,20 @@ document.getElementById("throw").addEventListener("click",()=>{
   acknowledge("exception");
   status.textContent="Generating one intentional JavaScript exception.";
   throw new TypeError("TraceCue fixture: deliberate unhandled exception for QA testing");
+});
+document.getElementById("info").addEventListener("click",async()=>{
+  acknowledge("info");
+  console.log("TraceCue fixture: safe console log");
+  console.info("TraceCue fixture: safe informational signal");
+  console.debug("TraceCue fixture: safe diagnostic debug message");
+  try {
+    const response=await fetch("/demo-session.json",{cache:"no-store"});
+    status.textContent="Public fictional fixture response: HTTP "+response.status;
+    console.info("TraceCue fixture: test GET completed with HTTP "+response.status);
+  }catch(error){
+    status.textContent="Public fictional fixture request failed";
+    console.error("TraceCue fixture: successful response test was unavailable");
+  }
 });
 document.getElementById("clear").addEventListener("click",()=>{
   status.textContent="Visual status reset. No application data was changed.";
