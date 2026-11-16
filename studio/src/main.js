@@ -8,6 +8,8 @@ import {buildGitHubIssueDraft,githubIssueUrl} from "./github-handoff.js";
 import {createVideoInspector} from "./synchronized-video.js";
 import {evaluateReproduction} from "./repro-audit.js";
 import {sanitizeForAI} from "./evidence-intelligence.js";
+import {scopedEvidence} from "./issue-scope.js";
+import {mountQaWorkspace} from "./query-workspace.js";
 
 let session = null;
 let analysis = null;
@@ -31,6 +33,7 @@ app.innerHTML = [
     '<main>',
       '<section class="hero" id="overview"><div><span class="eyebrow">TRACE EVERY DEFECT</span><h1>Understand what happened.<br><em>Not what was remembered.</em></h1><p>Bring a browser testing session into TraceCue. Review the evidence locally, then decide whether an AI-assisted investigation is useful.</p><p class="demo-label">Public demo is fictional and does not represent an actual customer defect.</p></div><div class="hero-actions"><button id="loadDemo" class="demo-button">Try fictional demo</button><label class="upload">↑ &nbsp; Import session JSON<input type="file" id="file" accept="application/json,.json" hidden></label></div></section>',
       '<section class="metrics"><div class="metric"><small>Event occurrences</small><b id="events">—</b><span>From imported session</span></div><div class="metric"><small>Failures</small><b id="errors">—</b><span>Exceptions and failed requests</span></div><div class="metric"><small>Warnings</small><b id="warnings">—</b><span>Potentially noncritical diagnostics</span></div><div class="metric"><small>Environment</small><b id="environment">—</b><span>Possible extension-related messages</span></div><div class="metric"><small>Interactions</small><b id="actions">—</b><span>User actions</span></div><div class="metric"><small>Duration</small><b id="duration">—</b><span>Seconds captured</span></div></section>',
+      '<section id="queryWorkspace" class="panel qa-query-panel" aria-label="Ask TraceCue evidence interrogation"></section>',
       '<div class="two">',
         '<section class="panel" id="evidence"><div class="panel-head"><div><span class="eyebrow">CAPTURED SESSION</span><h2>Evidence timeline</h2></div><span class="badge" id="sessionBadge">No session imported</span></div>',
         '<div id="sessionMeta" class="meta">Import a session from the TraceCue Chrome companion to see its synchronized actions, failures, and issue markers.</div>',
@@ -80,6 +83,12 @@ app.innerHTML = [
 const $ = id => document.getElementById(id);
 const noHtml = (tag,cls,value) => {const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
 const videoInspector=createVideoInspector({video:$("fullVideo"),upload:$("videoUpload"),status:$("videoStatus"),markers:$("videoMarkers")});
+const qaWorkspace=mountQaWorkspace($("queryWorkspace"),{
+  getSession:()=>session,hasFirebase,
+  seek:event=>videoInspector.seek(event),
+  onSelect:()=>{if(session)syncPrompt();}
+});
+const selectedReport=()=>scopedEvidence(session,qaWorkspace.getMarkerId()).report;
 
 function evidenceRef(index){return "EV"+String(index+1).padStart(4,"0");}
 function focusEvidence(id){
@@ -112,9 +121,11 @@ function resetAnalysis(message){
 }
 function syncPrompt() {
   if(!session)return;
-  const prepared=prepareInvestigation(session,$("notes").value,{
-    includeEnvironment:$("includeEnvironment").checked
-  });
+  const scoped=scopedEvidence(session,qaWorkspace.getMarkerId());
+  const testerNotes=scoped.bounds?.marker.event.testerNotes||"";
+  const prepared=prepareInvestigation(scoped.report,
+    [$("notes").value,testerNotes].filter(Boolean).join("\n"),
+    {includeEnvironment:$("includeEnvironment").checked});
   evidence=prepared.catalog;
   $("prompt").value=prepared.prompt;
   $("consent").checked=false;
@@ -167,6 +178,7 @@ function applyReport(data){
     for(const id of ["reproPreconditions","reproExpected","reproActual"])$(id).value="";
     for(const id of ["reproSteps","reproRetest","reproPrivacy","reproAuthorized"])$(id).checked=false;
     videoInspector.configure(data);
+    qaWorkspace.refresh();
     const s=summarize(data);
     $("events").textContent=s.events;
     $("errors").textContent=s.errors;
@@ -261,7 +273,7 @@ function refreshGitHubDraft(){
   if(!session || !analysis?.structured){
     $("issuePreview").value="";return;
   }
-  const draft=buildGitHubIssueDraft(session,analysis.structured,evidence,analysis.source);
+  const draft=buildGitHubIssueDraft(selectedReport(),analysis.structured,evidence,analysis.source);
   const review=[
     "## Tester attestation (self-reported)",
     "- Prerequisites: "+sanitizeForAI(audit.preconditions,600),
@@ -307,11 +319,11 @@ $("cloud").addEventListener("click",()=>analyze("cloud"));
 $("export").addEventListener("click",() => {
   if (!session) return;
   saveText("tracecue-" + session.id + "-investigation.md",
-    exportIssue(session,$("notes").value,analysis)+
+    exportIssue(selectedReport(),$("notes").value,analysis)+
       (analysis?.structured?"\n\n"+structuredToMarkdown(analysis.structured):""),"text/markdown");
 });
 
 $("playwright").addEventListener("click",() => {
   if (!session) return;
-  saveText("tracecue-" + session.id + ".spec.ts",generatePlaywrightDraft(session),"text/plain");
+  saveText("tracecue-" + session.id + ".spec.ts",generatePlaywrightDraft(selectedReport()),"text/plain");
 });

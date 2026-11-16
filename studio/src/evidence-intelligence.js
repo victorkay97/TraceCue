@@ -1,5 +1,5 @@
 import {eventKind,summarize} from "./report.js";
-const important=new Set(["click","change","submit","network-failure","console-exception","console-error","console-warning","issue-marker","page-ready"]);
+const important=new Set(["network-response","console-info","console-debug","click","change","submit","network-failure","console-exception","console-error","console-warning","issue-marker","page-ready"]);
 const failure=new Set(["network-failure","console-exception","console-error"]);
 export function sanitizeForAI(raw,max=1800) {
   return String(raw??"").slice(0,max)
@@ -18,7 +18,7 @@ export function evidenceCatalog(report,{includeEnvironment=false,limit=70}={}) {
     if(!important.has(kind)&&!(includeEnvironment&&kind==="environment-diagnostic"))continue;
     if(out.length>=max)break;
     out.push({
-      id:"EV"+String(i+1).padStart(4,"0"),kind,
+      id:e.evidenceRef||"EV"+String(i+1).padStart(4,"0"),kind,
       second:Math.max(0,Math.round((e.at-report.startedAt)/100)/10),
       occurrences:count(e),element:sanitizeForAI(e.element,80),
       status:Number.isInteger(e.status)&&e.status>=100&&e.status<=599?e.status:null,
