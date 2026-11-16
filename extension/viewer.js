@@ -1,5 +1,6 @@
 import { redactDiagnosticText, safeEvidenceUrl } from "./diagnostics.js";
 import {setupClipViewer} from "./clip-viewer.js";
+import {newHandoffToken,studioTarget,transferTarget,MAX_HANDOFF_VIDEO_BYTES} from "./studio-handoff.js";
 // Local extension session viewer. Never fetches from remote hosts.
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get("id");
@@ -252,4 +253,72 @@ setupClipViewer({
   saveReport:async updated=>chrome.storage.local.set({["report:"+id]:updated})
 }).catch(error=>{
   $("clipStatus").textContent="Clip viewer unavailable: "+error.message;
+});
+
+
+// Explicit browser-to-browser transfer, not an automatic cloud export.
+let pendingStudioTransfer=null;
+$("openStudio").addEventListener("click",async()=>{
+  if(!$("studioTransferConsent").checked){
+    $("studioTransferStatus").textContent="Review the evidence and affirm permission before transferring.";
+    return;
+  }
+  if(pendingStudioTransfer){
+    $("studioTransferStatus").textContent="A handoff is already pending. Finish or close the current Studio tab.";
+    return;
+  }
+  try{
+    const origin=studioTarget($("studioDestination").value);
+    const token=newHandoffToken();
+    const url=transferTarget(origin,token,chrome.runtime.id);
+    const safe=safeExport(report);
+    if(JSON.stringify(safe).length>5_000_000)throw Error("Session report exceeds the transfer limit; export the JSON manually.");
+    const includeVideo=videoBlob instanceof Blob && videoBlob.size<=MAX_HANDOFF_VIDEO_BYTES &&
+      videoBlob.type.includes("webm");
+    const userVideoNote=videoBlob && !includeVideo?
+      " Video exceeds the 80 MB direct-transfer limit; attach it manually in Studio.":"";
+    // Preserve opener reference for explicit challenge/response, but send no
+    // evidence until Studio demonstrates control of the selected origin.
+    const popup=window.open(url,"_blank");
+    if(!popup)throw Error("Browser blocked opening Studio. Allow popups and retry.");
+    pendingStudioTransfer={origin,token,popup,sent:false};
+    $("studioTransferStatus").textContent="Studio window opened. Preparing local handoff."+userVideoNote;
+    setTimeout(()=>{
+      if(pendingStudioTransfer?.token===token){
+        pendingStudioTransfer=null;
+        $("studioTransferStatus").textContent="Handoff expired after two minutes. Retry from this review tab if needed.";
+      }
+    },120000);
+  }catch(error){
+    pendingStudioTransfer=null;
+    $("studioTransferStatus").textContent="Handoff unavailable: "+error.message;
+  }
+});
+window.addEventListener("message",event=>{
+  const task=pendingStudioTransfer;
+  if(!task||event.origin!==task.origin||!event.data||event.data.token!==task.token)return;
+  if(event.source&&event.source!==task.popup)return;
+  if(event.data.type==="tracecue.handoff.ack.v1"){
+    $("studioTransferStatus").textContent="Studio confirmed local import. No recording was uploaded by this transfer.";
+    pendingStudioTransfer=null;
+    $("studioTransferConsent").checked=false;
+    return;
+  }
+  if(event.data.type!=="tracecue.handoff.ready.v1"||task.sent)return;
+  if(task.popup.closed){
+    pendingStudioTransfer=null;$("studioTransferStatus").textContent="The Studio window was closed.";return;
+  }
+  task.sent=true;
+  try{
+    task.popup.postMessage({
+      type:"tracecue.handoff.payload.v1",token:task.token,
+      report:safeExport(report),
+      video:videoBlob instanceof Blob && videoBlob.size<=MAX_HANDOFF_VIDEO_BYTES &&
+        videoBlob.type.includes("webm")?videoBlob:null
+    },task.origin);
+    $("studioTransferStatus").textContent="Evidence sent between browser windows. Confirm import inside Studio.";
+  }catch(error){
+    pendingStudioTransfer=null;
+    $("studioTransferStatus").textContent="Browser handoff failed: "+error.message+" Export JSON and WebM manually.";
+  }
 });

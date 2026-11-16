@@ -59,6 +59,9 @@ export function initExtensionHandoff({validateReport,onAccept}){
     try{
       accepted=true;
       onAccept(received.report,received.video);
+      if(window.opener){
+        window.opener.postMessage({type:"tracecue.handoff.ack.v1",token:param.token},"*");
+      }
       done();
     }catch(error){
       accepted=false;$("transferMessage").textContent="Import failed: "+error.message;

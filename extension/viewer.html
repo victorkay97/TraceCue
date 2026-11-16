@@ -23,7 +23,16 @@
           <button id="saveMarkdown" class="secondary">Export issue draft</button>
           <button id="deleteSession" class="danger">Delete local session</button>
         </div>
-        <label for="issueTitle">Issue title (optional)</label>
+        <section class="studio-handoff" aria-label="Open the current recording in TraceCue Studio">
+  <div class="panel-head"><h2>Continue in Studio</h2><span>Local browser transfer</span></div>
+  <p class="muted tiny">Send this reviewed session directly to a TraceCue Studio window. No account, server upload or automatic AI request. Keep this review tab open until Studio confirms the import.</p>
+  <label for="studioDestination">Studio destination</label>
+  <select id="studioDestination"><option value="local">Local Studio (127.0.0.1:5173)</option><option value="preview">Hosted preview (tracecue-studio-preview.vercel.app)</option></select>
+  <label class="studio-approval"><input type="checkbox" id="studioTransferConsent"> I reviewed the recording and logs, have permission to handle them, and approve transfer to the selected Studio origin.</label>
+  <button id="openStudio" class="secondary">Open reviewed session in Studio ↗</button>
+  <p id="studioTransferStatus" class="muted tiny" role="status">Nothing has been transferred.</p>
+</section>
+<label for="issueTitle">Issue title (optional)</label>
         <input id="issueTitle" type="text" maxlength="160" placeholder="e.g. Save button does not update the profile"/>
         <label for="notes">Tester notes / expected vs actual</label>
         <textarea id="notes" rows="5" placeholder="Expected: save succeeds. Actual: response 500 and UI is unchanged."></textarea>

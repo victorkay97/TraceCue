@@ -41,16 +41,19 @@ export function createVideoInspector({video,upload,status,markers}){
     try{video.currentTime=target;video.scrollIntoView({behavior:"smooth",block:"center"});}
     catch(error){status.textContent="Seeking failed: "+error.message;}
   }
+  function attachVideoBlob(blob,name="Transferred full recording"){
+    if(!report)throw new Error("Import a session before attaching video.");
+    if(!(blob instanceof Blob)||!blob.size||blob.size>1_000_000_000||
+      !blob.type.includes("webm"))throw new Error("A supported WebM video is required.");
+    if(currentUrl)URL.revokeObjectURL(currentUrl);
+    currentUrl=URL.createObjectURL(blob);urls.push(currentUrl);
+    video.src=currentUrl;video.hidden=false;video.load();
+    status.textContent=name+" · "+(blob.size/1048576).toFixed(1)+" MB · local browser preview";
+  }
   upload.addEventListener("change",event=>{
     const file=event.target.files?.[0];if(!file || !report)return;
-    if(!file.name.toLowerCase().endsWith(".webm") && !file.type.includes("webm")){
-      status.textContent="Choose a WebM recording downloaded from the companion.";return;
-    }
-    if(file.size>1_000_000_000){status.textContent="WebM exceeds the 1GB local preview limit.";return;}
-    if(currentUrl)URL.revokeObjectURL(currentUrl);
-    currentUrl=URL.createObjectURL(file);urls.push(currentUrl);
-    video.src=currentUrl;video.hidden=false;video.load();
-    status.textContent=file.name+" · "+(file.size/1048576).toFixed(1)+" MB · local browser preview";
+    try{attachVideoBlob(file,file.name);}
+    catch(error){status.textContent=error.message;}
   });
   video.addEventListener("timeupdate",()=>{
     if(!currentUrl || !report)return;
@@ -66,5 +69,5 @@ export function createVideoInspector({video,upload,status,markers}){
     if(nearest!==null)document.getElementById("event-EV"+String(nearest+1).padStart(4,"0"))?.classList.add("video-active");
   });
   window.addEventListener("beforeunload",clear);
-  return {configure,seek,clear,hasVideo:()=>!!currentUrl};
+  return {configure,seek,clear,attachVideoBlob,hasVideo:()=>!!currentUrl};
 }
