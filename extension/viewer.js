@@ -150,6 +150,11 @@ try {
   db.close();
   if (videoBlob) {
     $("video").src = URL.createObjectURL(videoBlob);
+    $("video").addEventListener("loadedmetadata",async()=>{
+      if(!Number.isFinite($("video").duration)||$("video").duration<=0)return;
+      report.videoDurationSeconds=$("video").duration;
+      await chrome.storage.local.set({["report:"+id]:report});
+    },{once:true});
     $("videoStatus").textContent = (videoBlob.size/1024/1024).toFixed(1) + " MB · stored locally";
   } else {
     $("video").hidden = true;

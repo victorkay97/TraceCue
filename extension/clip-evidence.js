@@ -5,7 +5,9 @@ import {redactDiagnosticText,safeEvidenceUrl} from "./diagnostics.js";
 // It is shared by the viewer and both Markdown and JSON issue exports.
 export function recordedDuration(report) {
   const start=Number.isFinite(report.videoStartedAt)?report.videoStartedAt:report.startedAt;
-  return Math.max(0,(report.stoppedAt-start)/1000);
+  const elapsed=Math.max(0,(report.stoppedAt-start)/1000);
+  return Number.isFinite(report.videoDurationSeconds)&&report.videoDurationSeconds>0 ?
+    Math.min(elapsed,report.videoDurationSeconds):elapsed;
 }
 export function issueWindow(report,marker,duration=recordedDuration(report)){
   const bounds=clipBounds(report,marker,duration);
