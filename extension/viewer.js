@@ -95,3 +95,27 @@ $("saveMarkdown").addEventListener("click",() => {
   ];
   download(new Blob([lines.join("\n")],{type:"text/markdown"}),id + ".md");
 });
+
+$("deleteSession").addEventListener("click",async () => {
+  if (!confirm("Delete this session, including its locally stored video and events? This cannot be undone.")) return;
+  try {
+    const db = await openDb();
+    await new Promise((resolve,reject) => {
+      const tx = db.transaction("recordings","readwrite");
+      tx.objectStore("recordings").delete(id);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+    await chrome.storage.local.remove(["report:" + id,"lastReportId"]);
+    if ($("video").src) URL.revokeObjectURL($("video").src);
+    $("video").removeAttribute("src");
+    $("video").hidden = true;
+    $("timeline").replaceChildren();
+    $("title").textContent = "Local session deleted";
+    $("meta").textContent = "The video and event report have been removed from extension storage.";
+    document.querySelectorAll("button").forEach(button => button.disabled = true);
+  } catch(error) {
+    alert("Could not delete the complete session: " + error.message);
+  }
+});
