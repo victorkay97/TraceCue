@@ -9,6 +9,29 @@ async function resolveTab(){
   return null;
 }
 const clock=ms=>{const s=Math.floor(Math.max(0,ms)/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");};
+let lastMarkersFingerprint="";
+function renderIssueHistory(markers=[],startedAt=null){
+  const fingerprint=JSON.stringify(markers);
+  if(fingerprint===lastMarkersFingerprint)return;
+  lastMarkersFingerprint=fingerprint;
+  const list=$("issueList");list.replaceChildren();
+  $("issueCount").textContent=markers.length+" saved";
+  if(!markers.length){
+    const empty=document.createElement("li");
+    empty.textContent="No issue marked yet.";
+    empty.className="no-marker";list.append(empty);return;
+  }
+  for(const marker of markers){
+    const row=document.createElement("li");
+    const title=document.createElement("strong");
+    title.textContent=marker.title||"Untitled issue";
+    const time=document.createElement("small");
+    const timeFromStart=Number.isFinite(startedAt)?Math.max(0,(marker.at-startedAt)/1000):null;
+    time.textContent=(timeFromStart==null?"":("+"+timeFromStart.toFixed(1)+"s · "))+
+      "previous "+(marker.lookbackSeconds||30)+"s";
+    row.append(title,time);list.append(row);
+  }
+}
 async function refresh(){
   const tab=await resolveTab();
   if(!tab){$("message").textContent="Select an authorized HTTP(S) tab and reopen TraceCue.";return;}
@@ -19,6 +42,7 @@ async function refresh(){
   $("start").disabled=!!info?.recording;
   $("stop").disabled=!recording;$("mark").disabled=!recording;
   $("timer").textContent=clock(recording?Date.now()-info.startedAt:0);
+  renderIssueHistory(info?.markers||[],info?.startedAt??null);
 }
 document.querySelectorAll("[data-seconds]").forEach(button=>button.addEventListener("click",()=>{
   seconds=Number(button.dataset.seconds);
@@ -43,12 +67,29 @@ $("stop").addEventListener("click",async()=>{
   await refresh();
 });
 $("mark").addEventListener("click",async()=>{
-  const result=await send("mark",{title:$("issueTitle").value.trim()||"Issue marker",lookbackSeconds:seconds}).catch(e=>({ok:false,error:e.message}));
-  $("message").textContent=result?.ok?"Marker added. Previous "+seconds+" seconds selected for a clip.":(result?.error||"Mark failed");
+  const title=$("issueTitle").value.trim()||"Untitled issue";
+  const result=await send("mark",{title,lookbackSeconds:seconds}).catch(e=>({ok:false,error:e.message}));
+  if(result?.ok){
+    $("message").textContent="Saved: "+title+" · previous "+seconds+"s. Full recording continues.";
+    $("issueTitle").value="";
+  }else $("message").textContent=result?.error||"Mark failed";
+  await refresh();
 });
 $("window").addEventListener("click",async()=>{
-  await resolveTab();
-  await chrome.windows.create({url:chrome.runtime.getURL("sidepanel.html?tab="+tabId),type:"popup",width:440,height:740});
+  const tab=await resolveTab();
+  if(!tab){$("message").textContent="Select an authorized website tab.";return;}
+  const owner=await chrome.windows.get(tab.windowId).catch(()=>null);
+  const width=390,height=640;
+  const placement={};
+  if(owner && Number.isFinite(owner.left)&&Number.isFinite(owner.top)
+    && Number.isFinite(owner.width)&&Number.isFinite(owner.height)){
+    placement.left=Math.round(owner.left+Math.max(0,owner.width-width-18));
+    placement.top=Math.round(owner.top+Math.max(0,owner.height-height-45));
+  }
+  await chrome.windows.create({
+    url:chrome.runtime.getURL("sidepanel.html?tab="+tab.id+"&floating=1"),
+    type:"popup",width,height,...placement
+  }).catch(e=>{$("message").textContent="Could not open floating controls: "+e.message;});
 });
 $("review").addEventListener("click",async()=>{
   const x=await chrome.storage.local.get("lastReportId");
