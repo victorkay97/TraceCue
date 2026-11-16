@@ -16,7 +16,7 @@ const normalizedKind = event => {
       ["browser-extension","browser-internal","isolated-world"].includes(event.sourceHint) ||
       /^chrome-extension:\/\//i.test(event.url || "") ||
       event.url === "[browser-extension]") return "environment-diagnostic";
-  if (event.kind === "console-error" || event.kind === "console-warning") {
+  if (["console-error","console-warning","console-exception","network-failure"].includes(event.kind)) {
     // Include older reports: previous versions recorded extension messaging as app errors.
     if (/unchecked runtime\.lastError/i.test(event.message || "") &&
         /could not establish connection|receiving end does not exist|message port closed/i.test(event.message || "")) {
