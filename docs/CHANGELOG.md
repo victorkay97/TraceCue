@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-16 — Issue clip editor and time-scoped diagnostic workspace
+
+- Every marker now supports selectable 0/5/10-second post-capture buffer, with 5 seconds selected by default; older markers retain a zero-second buffer.
+- After recording, a tester can edit each issue's start/end, preview the range, reset to marker, and regenerate only the affected clip. The full recording is unchanged.
+- Captures sanitized console log/info/debug in addition to errors and warnings and summarizes fetch/XHR successes/failures with safe metadata (not bodies or headers).
+- Each clip's console/network/actions/environment inspector is time-aligned, searchable, filterable and synchronized to playback.
+- Long event lists paginate in the viewer, while each isolated issue export includes all captured events within the edited interval, within the session's event cap.
+- Added per-issue severity, reproducibility, expected/actual fields, manual reproduction notes, environment details, and copyable Markdown drafts.
+- Expanded regression tests for post-buffer duration, edit boundaries, grouped console times, redaction and untruncated exports.
+- Added a comprehensive [QA product experience roadmap](QA_WORKSPACE_ROADMAP.md) informed by current QA capture tools.
+- Chrome WebM recording and replay acceptance is still pending; no claim of confirmed video playback.
+
+
 ## 2026-11-16 — Clean recording controls and individually titled QA clips
 
 - Chrome tab capture includes webpage overlays; recording now removes TraceCue's injected in-page mascot before MediaRecorder starts and suppresses reinjection until video has stopped. Capture fails closed if exclusion cannot be confirmed.
