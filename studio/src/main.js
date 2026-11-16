@@ -1,11 +1,15 @@
 import "./styles.css";
 import { validateReport,summarize,eventKind,buildPrompt,exportIssue,saveText } from "./report.js";
 import { investigate } from "./firebase-ai.js";
+import {prepareInvestigation,parseInvestigation,structuredToMarkdown} from "./evidence-intelligence.js";
+import {renderEvidenceCatalog,renderInvestigation} from "./intelligence-view.js";
 import { generatePlaywrightDraft } from "./playwright-draft.js";
 
 let session = null;
 let analysis = null;
 let view = "all";
+let evidence = [];
+let activeRequest = 0;
 const app = document.getElementById("app");
 app.innerHTML = [
   '<div class="shell">',
@@ -30,11 +34,14 @@ app.innerHTML = [
         '<section class="panel" id="intelligence"><div class="panel-head"><div><span class="eyebrow">FIREBASE AI LOGIC</span><h2>Investigation workspace</h2></div><span class="badge">Hybrid AI</span></div>',
         '<div class="tip"><strong>No silent cloud upload.</strong> Run strictly on-device, or inspect and approve the exact text sent to cloud AI.</div>',
         '<label for="notes">Tester observation / expected result</label><textarea id="notes" rows="4" placeholder="Expected: saving the profile succeeds. Actual: save request fails and the UI does not update."></textarea>',
+        '<label class="consent"><input id="includeEnvironment" type="checkbox"><span>Include extension/environment signals in AI prompt (excluded by default)</span></label>',
+        '<div id="evidenceCatalog" class="evidence-catalog"></div>',
         '<label for="prompt">AI input · editable privacy review</label><textarea id="prompt" rows="10" placeholder="Import a TraceCue JSON to generate a minimized analysis prompt."></textarea>',
         '<label class="consent"><input id="consent" type="checkbox"><span>I reviewed this text and authorize sending it to Firebase cloud inference.</span></label>',
         '<div class="actions"><button id="device" disabled>Analyze on device</button><button id="cloud" class="ghost" disabled>Analyze in cloud</button></div>',
         '<p id="aiStatus" class="status-text">No model has been invoked.</p>',
-        '<div id="aiResult" class="output">Analysis output will appear here only after a real AI response.</div>',
+        '<div id="structuredResult" class="insight-stack"></div>',
+        '<details class="raw-response"><summary>View raw model response</summary><div id="aiResult" class="output">No AI response yet.</div></details>',
         '<button id="export" class="download" disabled>↓ &nbsp; Download investigation (.md)</button>',
         '<button id="playwright" class="download" disabled>↓ &nbsp; Draft Playwright test (.spec.ts)</button>',
         '</section>',
@@ -46,26 +53,48 @@ app.innerHTML = [
 const $ = id => document.getElementById(id);
 const noHtml = (tag,cls,value) => {const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
 
+function evidenceRef(index){return "EV"+String(index+1).padStart(4,"0");}
+function focusEvidence(id){
+  view="all";
+  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("selected",b.dataset.view==="all"));
+  renderTimeline();
+  const entry=document.getElementById("event-"+id);
+  if(entry){
+    entry.classList.add("evidence-highlight");
+    entry.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+}
+function resetAnalysis(message){
+  analysis=null;
+  $("export").disabled=true;
+  $("structuredResult").replaceChildren();
+  $("aiResult").textContent=message;
+}
 function syncPrompt() {
-  if (!session) return;
-  $("prompt").value = buildPrompt(session,$("notes").value);
-  $("consent").checked = false;
-  analysis = null;
-  $("export").disabled = true;
-  $("aiResult").textContent = "A new prompt is ready. No AI request has been made.";
+  if(!session)return;
+  const prepared=prepareInvestigation(session,$("notes").value,{
+    includeEnvironment:$("includeEnvironment").checked
+  });
+  evidence=prepared.catalog;
+  $("prompt").value=prepared.prompt;
+  $("consent").checked=false;
+  activeRequest++;
+  resetAnalysis("Evidence prompt ready. No AI call has been made.");
+  renderEvidenceCatalog($("evidenceCatalog"),evidence,focusEvidence);
 }
 function renderTimeline() {
   const area = $("timeline");area.replaceChildren();
   if (!session) {area.append(noHtml("div","empty","No evidence loaded yet."));return;}
-  const matches = session.events.filter(e => view === "all" ||
+  const matches = session.events.map((event,index)=>({event,index})).filter(({event:e}) => view === "all" ||
     (view === "errors" && ["network-failure","console-error","console-exception"].includes(eventKind(e))) ||
     (view === "warnings" && ["console-warning","warning"].includes(eventKind(e))) ||
     (view === "environment" && eventKind(e) === "environment-diagnostic") ||
     (view === "markers" && eventKind(e) === "issue-marker"));
   if (!matches.length) {area.append(noHtml("div","empty","No events in this category."));return;}
-  for (const e of matches.slice(0,400)) {
+  for (const {event:e,index} of matches.slice(0,400)) {
     const kind = eventKind(e);
     const row = noHtml("div","event" + (["network-failure","console-error","console-exception"].includes(kind) ? " bad" : ""),"");
+    row.id="event-"+evidenceRef(index);
     row.append(noHtml("time","time","+" + ((e.at-session.startedAt)/1000).toFixed(1) + "s"));
     const box=document.createElement("div");
     box.append(noHtml("strong","",kind + (e.occurrences > 1 ? " ×" + e.occurrences : "")));
@@ -80,8 +109,10 @@ document.querySelectorAll("[data-view]").forEach(button => button.addEventListen
   renderTimeline();
 }));
 $("notes").addEventListener("input",syncPrompt);
+$("includeEnvironment").addEventListener("change",syncPrompt);
 $("prompt").addEventListener("input",() => {
-  $("consent").checked = false;analysis = null;$("export").disabled = true;
+  $("consent").checked=false;activeRequest++;
+  resetAnalysis("Prompt edited; previous output is no longer current.");
   $("aiStatus").textContent = "Prompt edited. Review it again before cloud analysis.";
 });
 $("file").addEventListener("change",async event => {
@@ -110,33 +141,47 @@ $("file").addEventListener("change",async event => {
   } finally { event.target.value = ""; }
 });
 async function analyze(mode) {
-  if (!session) return;
-  if (mode === "cloud" && !$("consent").checked) {
-    $("aiStatus").textContent="Approve the exact input text before cloud inference.";
-    return;
+  if(!session)return;
+  if(mode==="cloud"&&!$("consent").checked){
+    $("aiStatus").textContent="Review and explicitly authorize the text sent to cloud AI.";return;
   }
-  if (!$("prompt").value.trim()) return;
   const prompt=$("prompt").value;
+  if(!prompt.trim())return;
+  const serial=++activeRequest;
   $("device").disabled=true;$("cloud").disabled=true;$("export").disabled=true;
-  $("aiResult").textContent="";
-  $("aiStatus").textContent=mode === "device" ? "Preparing local model…" : "Invoking cloud model with approved text…";
-  try {
-    const result=await investigate(prompt,mode,message=>{$("aiStatus").textContent=message;});
-    analysis=result;
+  $("structuredResult").replaceChildren();
+  $("aiResult").textContent="No response received.";
+  $("aiStatus").textContent=mode==="device"?"Preparing local model…":"Invoking approved Firebase cloud model…";
+  try{
+    const result=await investigate(prompt,mode,message=>{
+      if(serial===activeRequest)$("aiStatus").textContent=message;
+    });
+    if(serial!==activeRequest)return;
+    const parsed=parseInvestigation(result.text,evidence.map(x=>x.id));
+    analysis={...result,structured:parsed.structured};
     $("aiResult").textContent=result.text;
-    $("aiStatus").textContent="Verified SDK inference source: " + result.source + " · " + result.at;
+    renderInvestigation($("structuredResult"),parsed.structured,focusEvidence);
+    $("aiStatus").textContent="Verified SDK source "+result.source+" · "+result.at+
+      (parsed.reason?" · "+parsed.reason+"; raw output retained":" · evidence references verified");
     $("export").disabled=false;
-  } catch(error) {
-    $("aiStatus").textContent="AI unavailable: " + error.message;
-    $("aiResult").textContent="No simulated output was substituted.";
-  } finally {$("device").disabled=false;$("cloud").disabled=false;}
+    $("consent").checked=false;
+  }catch(error){
+    if(serial!==activeRequest)return;
+    resetAnalysis("No simulated response was substituted.");
+    $("aiStatus").textContent="Firebase AI unavailable: "+error.message;
+  }finally{
+    if(serial===activeRequest){
+      $("device").disabled=false;$("cloud").disabled=false;
+    }
+  }
 }
 $("device").addEventListener("click",()=>analyze("device"));
 $("cloud").addEventListener("click",()=>analyze("cloud"));
 $("export").addEventListener("click",() => {
   if (!session) return;
   saveText("tracecue-" + session.id + "-investigation.md",
-    exportIssue(session,$("notes").value,analysis),"text/markdown");
+    exportIssue(session,$("notes").value,analysis)+
+      (analysis?.structured?"\n\n"+structuredToMarkdown(analysis.structured):""),"text/markdown");
 });
 
 $("playwright").addEventListener("click",() => {
