@@ -27,6 +27,11 @@ jobs:
           node --check extension/recovery.js
           node --check extension/library.js
           node --check extension/session-library.js
+          node --check extension/studio-handoff.js
+          node --check studio/src/extension-handoff.js
+          node --check studio/src/onboarding.js
+          node --check studio/src/ai-readiness.js
+          node --check studio/src/landing.js
           node --check studio/src/issue-scope.js
           node --check studio/src/qa-query.js
           node --check studio/src/query-workspace.js
@@ -40,3 +45,15 @@ jobs:
         run: npm --prefix studio install --no-audit --no-fund
       - name: Build Studio
         run: npm --prefix studio run build
+      - name: Package Chrome developer preview
+        run: |
+          cd extension
+          zip -q -r ../tracecue-companion-dev.zip . -x "*.DS_Store"
+          cd ..
+          unzip -l tracecue-companion-dev.zip | grep -q "manifest.json"
+      - name: Upload developer-preview extension ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: tracecue-companion-developer-preview
+          path: tracecue-companion-dev.zip
+          retention-days: 14
