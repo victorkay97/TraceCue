@@ -75,3 +75,29 @@
 .frame-annotator select{padding:9px;color:#def3ed;background:#102732;border:1px solid #365964;border-radius:8px}
 .frame-annotator canvas{width:100%;height:auto;max-height:400px;object-fit:contain;cursor:crosshair;touch-action:none;border:1px solid #395967;border-radius:10px;background:#0a1017}
 .frame-annotator .actions{flex-wrap:wrap;margin-top:12px}
+
+
+/* TraceCue 0.5: first-use navigation, AI decision guidance, and safe handoff */
+.nav-guide{display:block;width:100%;border:0;background:transparent;text-align:left;font:inherit;font-weight:650;cursor:pointer}
+.nav-guide:hover{background:#22313b;color:#e8f2f3}
+.nav-home{margin-top:7px;color:#8bb9b4}
+.topbar-actions{display:flex;align-items:center;gap:15px}
+.topbar-home{font-size:11px;color:#a6d5ca;font-weight:750}
+.topbar-home:hover{color:#eafbf2}
+.ai-mode-guide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:16px 0}
+.ai-mode-entry{display:flex;align-items:flex-start;gap:11px;background:#122c32;border:1px solid #35565b;border-radius:10px;padding:13px}
+.ai-mode-icon{width:32px;height:32px;flex-shrink:0;background:#264a49;border:1px solid #3b6860;border-radius:9px;display:grid;place-items:center;font-size:21px;color:#b1e8d7}
+.ai-mode-entry strong{font-size:12px;color:#e5f4ef}
+.ai-mode-entry p{font-size:11px;line-height:1.6;color:#9bb7b6;margin:4px 0 0}
+.local-readiness{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:19px}
+.readiness-button{background:transparent;border:1px solid #527778;border-radius:7px;padding:9px 12px;font:inherit;font-size:11px;color:#b8ded6;font-weight:700}
+.readiness-button:hover{background:#274147}
+#deviceStatus{flex:1;font-size:11px;color:#9dbab6;line-height:1.5}
+.tc-transfer-notice{position:fixed;z-index:9999;right:25px;bottom:25px;width:min(450px,calc(100vw - 30px));background:#1b3439;color:#e6f4ef;border:1px solid #648e85;border-radius:15px;padding:20px;box-shadow:0 30px 90px #000c}
+.tc-transfer-notice strong{font-size:14px;color:#e6f5ee}
+.tc-transfer-notice p{font-size:12px;color:#b3ceca;line-height:1.75;margin:10px 0 15px}
+.tc-transfer-notice .transfer-actions{display:flex;gap:9px}
+.tc-transfer-notice button{border:1px solid #5e8177;border-radius:9px;padding:11px 14px;background:#bde7da;color:#173f38;font:inherit;font-weight:800;font-size:12px}
+.tc-transfer-notice button.ghost{background:#2b494b;color:#cee5df}
+.tc-transfer-notice button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:780px){.ai-mode-guide{grid-template-columns:1fr}.topbar-actions .topbar-home{display:none}}

@@ -56,3 +56,15 @@
 .clip-qa-select,.clip-qa-input{display:block;width:100%;background:#0c1b27;border:1px solid #3b5362;border-radius:8px;color:#e1eef3;padding:9px;margin-top:6px;font-size:12px}
 .clip-qa-input{min-height:50px;resize:vertical;font-family:inherit;line-height:1.5}
 @media(max-width:500px){.clip-qa-fields{grid-template-columns:1fr}}
+
+
+/* Explicit extension-to-Studio local transfer */
+.studio-handoff{margin:20px 0;padding:17px;background:#132a31;border:1px solid #3b6264;border-radius:12px}
+.studio-handoff .panel-head{align-items:center;gap:10px}
+.studio-handoff .panel-head h2{font-size:15px;margin:0;color:#d9efeb}
+.studio-handoff .panel-head>span{font-size:10px;color:#a5cec5}
+.studio-handoff select{display:block;background:#0d2028;border:1px solid #41616a;border-radius:9px;padding:10px;color:#e2f3ef;font:inherit;margin:8px 0 15px;width:100%}
+.studio-handoff .studio-approval{display:flex;align-items:flex-start;gap:10px;font-weight:500;font-size:12px;line-height:1.65;margin:13px 0;color:#a9c8c8}
+.studio-handoff .studio-approval input{width:auto;flex-shrink:0;margin-top:5px;accent-color:#bce9df}
+.studio-handoff button{margin:0 0 10px;font-size:12px}
+.studio-handoff #studioTransferStatus{line-height:1.55}
