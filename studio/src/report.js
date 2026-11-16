@@ -27,8 +27,8 @@ export function validateReport(input) {
 }
 export function eventKind(event) {
   // Include older recordings with extension/runtime messaging captured as site errors.
-  if (event.kind === "console-error" || event.kind === "console-warning" ||
-      event.kind === "environment-diagnostic") {
+  if (["console-error","console-warning","console-exception","network-failure",
+       "environment-diagnostic"].includes(event.kind)) {
     if (event.kind === "environment-diagnostic" ||
         ["browser-extension","browser-internal","isolated-world"].includes(event.sourceHint) ||
         /^chrome-extension:\/\//i.test(event.url || "") ||
