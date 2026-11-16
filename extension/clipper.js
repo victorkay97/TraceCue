@@ -6,12 +6,19 @@ export function clipBounds(report,marker,durationSeconds=Infinity) {
     throw new Error("Expected a recorded issue marker");
   const videoStart=Number.isFinite(report.videoStartedAt)?report.videoStartedAt:report.startedAt;
   const lookback=Math.max(5,Math.min(120,Number(marker.lookbackSeconds)||30));
+  // Older markers have no post-buffer and retain their original behavior.
+  const postBuffer=marker.postBufferSeconds===undefined?0:
+    Math.max(0,Math.min(10,Number(marker.postBufferSeconds)||0));
   const markerSecond=Math.max(0,(marker.at-videoStart)/1000);
   const limit=Number.isFinite(durationSeconds)?Math.max(0,durationSeconds):Infinity;
-  const end=Math.min(markerSecond,limit);
-  const start=Math.max(0,end-lookback);
-  if(end-start<0.05)throw new Error("Issue was marked before usable video began");
-  return {start,end,duration:end-start,lookback};
+  const edited=marker.clipStartSecond!==undefined || marker.clipEndSecond!==undefined;
+  if(edited && (!Number.isFinite(marker.clipStartSecond)||!Number.isFinite(marker.clipEndSecond)))
+    throw new Error("Both custom clip boundaries must be valid numbers");
+  const start=edited?marker.clipStartSecond:Math.max(0,markerSecond-lookback);
+  const end=Math.min(edited?marker.clipEndSecond:markerSecond+postBuffer,limit);
+  if(start<0 || !Number.isFinite(start) || end-start<0.05 || start>=limit)
+    throw new Error("Issue clip window has no usable recorded video");
+  return {start,end,duration:end-start,lookback,postBuffer,edited};
 }
 export function clipKey(sessionId,markerId) {
   const safe=value=>String(value||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,100);
