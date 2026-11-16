@@ -1,4 +1,4 @@
-# TraceCue 0.2 — Recording, issue clips and engineering handoff
+# TraceCue 0.3 — Recording, editing, issue evidence and engineering handoff
 
 Updated: November 16, 2026. This document describes the implemented development branch and explicitly separates automated verification from Chrome acceptance testing.
 
