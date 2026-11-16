@@ -166,6 +166,12 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
     await ready;
     const tid=sender.tab?.id || Number(msg.tabId);
     const tab=Number.isSafeInteger(tid)?await chrome.tabs.get(tid).catch(()=>null):null;
+    if(msg.action==="open-sidebar"){
+      if(!tab)return {ok:false,error:"No website tab"};
+      await chrome.sidePanel.setOptions({tabId:tab.id,path:"sidepanel.html",enabled:true});
+      await chrome.sidePanel.open({tabId:tab.id});
+      return {ok:true};
+    }
     if(msg.action==="status")return {
       ok:true,recording:!!session,activeOnTab:session?.tabId===tab?.id,
       startedAt:session?.startedAt??null,tabId:session?.tabId??null
