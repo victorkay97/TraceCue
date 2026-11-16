@@ -1,5 +1,5 @@
 import "./styles.css";
-import { validateReport,summarize,buildPrompt,exportIssue,saveText } from "./report.js";
+import { validateReport,summarize,eventKind,buildPrompt,exportIssue,saveText } from "./report.js";
 import { investigate } from "./firebase-ai.js";
 import { generatePlaywrightDraft } from "./playwright-draft.js";
 
@@ -21,11 +21,11 @@ app.innerHTML = [
     '<header class="topbar"><div><span class="crumb">QA workspace / <strong>Session overview</strong></span></div><span class="state">● Development preview</span></header>',
     '<main>',
       '<section class="hero" id="overview"><div><span class="eyebrow">TRACE EVERY DEFECT</span><h1>Understand what happened.<br><em>Not what was remembered.</em></h1><p>Bring a browser testing session into TraceCue. Review the evidence locally, then decide whether an AI-assisted investigation is useful.</p></div><label class="upload">↑ &nbsp; Import session JSON<input type="file" id="file" accept="application/json,.json" hidden></label></section>',
-      '<section class="metrics"><div class="metric"><small>Captured events</small><b id="events">—</b><span>From imported session</span></div><div class="metric"><small>Diagnostics</small><b id="errors">—</b><span>Errors and warnings</span></div><div class="metric"><small>Interactions</small><b id="actions">—</b><span>User actions</span></div><div class="metric"><small>Duration</small><b id="duration">—</b><span>Seconds captured</span></div></section>',
+      '<section class="metrics"><div class="metric"><small>Event occurrences</small><b id="events">—</b><span>From imported session</span></div><div class="metric"><small>Failures</small><b id="errors">—</b><span>Exceptions and failed requests</span></div><div class="metric"><small>Warnings</small><b id="warnings">—</b><span>Potentially noncritical diagnostics</span></div><div class="metric"><small>Interactions</small><b id="actions">—</b><span>User actions</span></div><div class="metric"><small>Duration</small><b id="duration">—</b><span>Seconds captured</span></div></section>',
       '<div class="two">',
         '<section class="panel" id="evidence"><div class="panel-head"><div><span class="eyebrow">CAPTURED SESSION</span><h2>Evidence timeline</h2></div><span class="badge" id="sessionBadge">No session imported</span></div>',
         '<div id="sessionMeta" class="meta">Import a session from the TraceCue Chrome companion to see its synchronized actions, failures, and issue markers.</div>',
-        '<div class="tabs"><button data-view="all" class="selected">All events</button><button data-view="errors">Diagnostics</button><button data-view="markers">Issue markers</button></div>',
+        '<div class="tabs"><button data-view="all" class="selected">All events</button><button data-view="errors">Failures</button><button data-view="warnings">Warnings</button><button data-view="markers">Issue markers</button></div>',
         '<div id="timeline" class="timeline"><div class="empty">No evidence loaded yet.</div></div></section>',
         '<section class="panel" id="intelligence"><div class="panel-head"><div><span class="eyebrow">FIREBASE AI LOGIC</span><h2>Investigation workspace</h2></div><span class="badge">Hybrid AI</span></div>',
         '<div class="tip"><strong>No silent cloud upload.</strong> Run strictly on-device, or inspect and approve the exact text sent to cloud AI.</div>',
@@ -57,15 +57,17 @@ function syncPrompt() {
 function renderTimeline() {
   const area = $("timeline");area.replaceChildren();
   if (!session) {area.append(noHtml("div","empty","No evidence loaded yet."));return;}
-  const matches = session.events.filter(e => view === "all" || 
-    (view === "errors" && /error|failure|warning|exception/.test(e.kind)) ||
-    (view === "markers" && e.kind === "issue-marker"));
+  const matches = session.events.filter(e => view === "all" ||
+    (view === "errors" && ["network-failure","console-error","console-exception"].includes(eventKind(e))) ||
+    (view === "warnings" && ["console-warning","warning"].includes(eventKind(e))) ||
+    (view === "markers" && eventKind(e) === "issue-marker"));
   if (!matches.length) {area.append(noHtml("div","empty","No events in this category."));return;}
   for (const e of matches.slice(0,400)) {
-    const row = noHtml("div","event" + (/error|failure|warning|exception/.test(e.kind) ? " bad" : ""),"");
+    const kind = eventKind(e);
+    const row = noHtml("div","event" + (["network-failure","console-error","console-exception"].includes(kind) ? " bad" : ""),"");
     row.append(noHtml("time","time","+" + ((e.at-session.startedAt)/1000).toFixed(1) + "s"));
     const box=document.createElement("div");
-    box.append(noHtml("strong","",e.kind));
+    box.append(noHtml("strong","",kind + (e.occurrences > 1 ? " ×" + e.occurrences : "")));
     const pieces=[e.element,e.message,e.status,e.url].filter(Boolean);
     box.append(noHtml("p","",pieces.join(" · ").slice(0,350)));
     row.append(box);area.append(row);
@@ -91,6 +93,7 @@ $("file").addEventListener("change",async event => {
     const s=summarize(data);
     $("events").textContent=s.events;
     $("errors").textContent=s.errors;
+    $("warnings").textContent=s.warnings;
     $("actions").textContent=s.interactions;
     $("duration").textContent=s.duration + "s";
     $("sessionBadge").textContent="Imported · local";
