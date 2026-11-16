@@ -2,7 +2,7 @@ import {clipBounds,clipKey,clipFileName,createClipFromVideo} from "./clipper.js"
 import {issueDraft,issueJson} from "./issue-export.js";
 import {redactDiagnosticText} from "./diagnostics.js";
 // Independent local clip manager; full recording is never modified.
-export async function setupClipViewer({report,id,videoBlob,video,openDb,download,seekEvent,saveReport}){
+export async function setupClipViewer({report,id,videoBlob,video,openDb,download,seekEvent,saveReport,onMarkerUpdated=()=>{}}){
   const $=x=>document.getElementById(x);
   const markers=report.events.map((event,index)=>({event,index})).filter(x=>x.event.kind==="issue-marker");
   const saved=new Map(),status=new Map();
@@ -76,6 +76,7 @@ export async function setupClipViewer({report,id,videoBlob,video,openDb,download
           for(const item of report.clips)if(item.markerId===idFor(marker))item.title=marker.event.title;
         }
         await saveReport(report);
+        onMarkerUpdated();
         render();
       });
       const notesLabel=document.createElement("label");
@@ -87,6 +88,7 @@ export async function setupClipViewer({report,id,videoBlob,video,openDb,download
       notesInput.addEventListener("change",async()=>{
         marker.event.testerNotes=redactDiagnosticText(notesInput.value.trim(),1800);
         await saveReport(report);
+        onMarkerUpdated();
       });
       details.append(title,note,state,titleLabel,titleInput,notesLabel,notesInput);
       row.append(details);
