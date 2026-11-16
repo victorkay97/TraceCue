@@ -115,6 +115,11 @@ document.querySelectorAll("[data-filter]").forEach(button => button.addEventList
   renderTimeline();
 }));
 renderTimeline();
+$("issueTitle").value = report.issueTitle || "";
+$("issueTitle").addEventListener("input",() => {
+  report.issueTitle = $("issueTitle").value.slice(0,160);
+  chrome.storage.local.set({["report:" + id]:report}).catch(console.error);
+});
 $("notes").value = report.testerNotes || "";
 $("notes").addEventListener("input",() => {
   report.testerNotes = $("notes").value.slice(0,2500);
@@ -160,7 +165,8 @@ $("saveJson").addEventListener("click",() =>
   download(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),id + ".json"));
 $("saveMarkdown").addEventListener("click",() => {
   const lines = [
-    "# " + (report.title || "Untitled QA observation"),"",
+    "# " + (report.issueTitle || "Untitled QA observation"),"",
+    "**Tested page:** " + (report.title || "Unknown page"),
     "**Tested origin:** " + report.url,
     "**Recorded:** " + new Date(report.startedAt).toISOString(),"",
     "## Expected and actual behaviour","",report.testerNotes || "(Add tester notes)","",
