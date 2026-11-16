@@ -28,7 +28,7 @@ function sameOrigin(raw,page) {
 // A concrete script callsite is stronger than the execution environment that
 // observed it. Attribution remains an estimate and never establishes a bug.
 export function classifyDiagnostic(kind,data={},context={}) {
-  if (!["console-warning","console-error","console-exception","network-failure","environment-diagnostic"].includes(kind))
+  if (!["console-warning","console-error","console-exception","console-info","console-debug","network-failure","network-response","environment-diagnostic"].includes(kind))
     return {kind,data};
   const callsite=context.stackUrl || context.url || "";
   const pageCallsite=sameOrigin(callsite,context.pageUrl);

@@ -22,7 +22,7 @@ function record(kind,data={},context={}) {
   if (!session) return;
   ({kind,data} = classifyDiagnostic(kind,data,context));
   const now = Date.now();
-  if (["console-warning","console-error","console-exception","environment-diagnostic"].includes(kind)) {
+  if (["console-warning","console-error","console-exception","console-info","console-debug","environment-diagnostic"].includes(kind)) {
     const signature = JSON.stringify([kind,data.level ?? "",data.message ?? "",data.url ?? "",data.sourceHint ?? ""]);
     const recent = session.events.slice(-20).reverse().find(event =>
       event.signature === signature && now - (event.lastAt || event.at) <= 4000
@@ -30,10 +30,12 @@ function record(kind,data={},context={}) {
     if (recent) {
       recent.occurrences = (recent.occurrences || 1) + 1;
       recent.lastAt = now;
+      if(!Array.isArray(recent.occurrenceTimes))recent.occurrenceTimes=[recent.at];
+      if(recent.occurrenceTimes.length<128)recent.occurrenceTimes.push(now);
       schedulePersist();
       return;
     }
-    data = {...data,signature};
+    data = {...data,signature,occurrenceTimes:[now]};
   }
   if (session.events.length >= MAX_EVENTS) { session.droppedEvents++; return; }
   session.events.push({kind,at:now,...data});
@@ -293,17 +295,24 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
     session.requests.set(params.requestId,{
       method:params.request?.method || "?",
       url:cleanUrl(rawUrl),
+      startedAt:Date.now(),
       rawExtension:/^chrome-extension:\/\//i.test(rawUrl)
     });
     if (session.requests.size > 500) session.requests.clear();
   } else if (method === "Network.responseReceived") {
     const request = session.requests.get(params.requestId);
     session.requests.delete(params.requestId);
-    if (params.response?.status >= 400) {
-      const rawUrl = params.response?.url || "";
-      record("network-failure",{
-        status:params.response.status,method:request?.method || "?",
-        url:request?.url || cleanUrl(rawUrl)
+    const status=params.response?.status;
+    const rawUrl=params.response?.url || "";
+    if (Number.isFinite(status) && (status>=400 ||
+        ["XHR","Fetch"].includes(params.type) && status>=100)) {
+      const kind=status>=400?"network-failure":"network-response";
+      record(kind,{
+        status,method:request?.method || "?",
+        url:request?.url || cleanUrl(rawUrl),
+        resourceType:String(params.type||"other").slice(0,18),
+        ...(Number.isFinite(request?.startedAt)?
+          {durationMs:Math.max(0,Date.now()-request.startedAt)}:{})
       },{url:request?.rawExtension ? "chrome-extension://recorded" : rawUrl,pageUrl:session.url});
     }
   } else if (method === "Network.loadingFailed") {
@@ -325,10 +334,12 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
        contextName:context?.name,isIsolated:context?.isIsolated,
        pageUrl:session.url});
   } else if (method === "Runtime.consoleAPICalled" &&
-             ["error","warning","warn","assert"].includes(params.type)) {
+             ["error","warning","warn","assert","log","info","debug"].includes(params.type)) {
     const context = session.contexts.get(params.executionContextId);
     const stackUrl = params.stackTrace?.callFrames?.find(frame=>frame.url)?.url || "";
-    const kind = ["warning","warn"].includes(params.type) ? "console-warning" : "console-error";
+    const kind = ["warning","warn"].includes(params.type)?"console-warning":
+      ["log","info"].includes(params.type)?"console-info":
+      params.type==="debug"?"console-debug":"console-error";
     record(kind,{
       level:params.type,
       message:scrub((params.args || []).map(x=>x.value ?? x.description ?? "").join(" "))

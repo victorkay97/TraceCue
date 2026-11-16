@@ -1,6 +1,6 @@
 // Data minimization deliberately occurs before any Firebase prompt is built.
 // Imported report JSON is untrusted. Avoid evaluating or injecting its text as HTML.
-const allowed = new Set(["click","submit","change","page-ready","network-failure","console-error","console-warning","console-exception","environment-diagnostic","warning","issue-marker","capture-started","capture-stopped"]);
+const allowed = new Set(["click","submit","change","page-ready","network-failure","network-response","console-error","console-warning","console-info","console-debug","console-exception","environment-diagnostic","warning","issue-marker","capture-started","capture-stopped"]);
 const failure = new Set(["network-failure","console-error","console-exception"]);
 const warning = new Set(["console-warning","warning"]);
 const environment = new Set(["environment-diagnostic"]);
