@@ -48,13 +48,19 @@ export async function createClipFromVideo(videoBlob,range,onProgress=()=>{}) {
     const start=Math.min(range.start,Math.max(0,recordedEnd-.1));
     const end=Math.min(range.end,recordedEnd);
     if(end<=start+.05)throw new Error("Clip is outside the recording");
-    element.currentTime=start;
-    await once(element,"seeked",20000);
+    // Seeking to zero on a fresh element might not dispatch a seeked event.
+    if(Math.abs(element.currentTime-start)>.015){
+      const settled=once(element,"seeked",20000);
+      element.currentTime=start;
+      await settled;
+    }else element.currentTime=start;
     // Chrome captureStream delivers the tab-video frames while playing the
     // selected interval. It does NOT return a cheap byte slice of a WebM file.
     if(typeof element.captureStream!=="function")
       throw new Error("This Chrome version cannot extract independent WebM clips");
     stream=element.captureStream();
+    await element.play();
+    if(!stream.getVideoTracks().length)throw new Error("No captured video track available for clip generation");
     const mime=MediaRecorder.isTypeSupported("video/webm;codecs=vp8") ?
       "video/webm;codecs=vp8" : "video/webm";
     recorder=new MediaRecorder(stream,{mimeType:mime});
@@ -65,7 +71,6 @@ export async function createClipFromVideo(videoBlob,range,onProgress=()=>{}) {
       recorder.onerror=e=>reject(e.error||new Error("Clip encoding failed"));
     });
     recorder.start(500);
-    await element.play();
     await new Promise((resolve,reject)=>{
       const deadline=setTimeout(()=>{cleanup();reject(new Error("Clip rendering timed out"));},Math.ceil((end-start+10)*1000));
       const tick=()=>{
