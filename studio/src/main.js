@@ -11,6 +11,9 @@ import {sanitizeForAI} from "./evidence-intelligence.js";
 import {scopedEvidence} from "./issue-scope.js";
 import {mountQaWorkspace} from "./query-workspace.js";
 import {createFrameAnnotator} from "./frame-annotator.js";
+import {initStudioOnboarding} from "./onboarding.js";
+import {initExtensionHandoff} from "./extension-handoff.js";
+import {checkLocalModelAvailability,localReadinessLabel} from "./ai-readiness.js";
 
 let session = null;
 let analysis = null;
@@ -27,10 +30,12 @@ app.innerHTML = [
     '<a href="#overview" class="nav selected">◫ &nbsp; Overview</a>',
     '<a href="#evidence" class="nav">▤ &nbsp; Evidence timeline</a>',
     '<a href="#intelligence" class="nav">✦ &nbsp; Intelligence</a>',
+    '<button id="showGuide" type="button" class="nav nav-guide">? &nbsp; First-use guide</button>',
+    '<a href="/" class="nav nav-home">↖ &nbsp; Back to website</a>',
     '<div class="side-bottom"><div class="privacy-symbol">◈</div><strong>Local by default</strong><p>Imported evidence stays inside this browser unless you explicitly approve cloud analysis.</p><a href="https://firebase.google.com/docs/ai-logic/hybrid/web/get-started" target="_blank" rel="noreferrer">Firebase hybrid setup ↗</a></div>',
   '</aside>',
   '<div class="content">',
-    '<header class="topbar"><div><span class="crumb">QA workspace / <strong>Session overview</strong></span></div><span class="state">● Development preview</span></header>',
+    '<header class="topbar"><div><span class="crumb">QA workspace / <strong>Session overview</strong></span></div><div class="topbar-actions"><span class="state">● Development preview</span><a href="/" class="topbar-home">Home ↗</a></div></header>',
     '<main>',
       '<section class="hero" id="overview"><div><span class="eyebrow">TRACE EVERY DEFECT</span><h1>Understand what happened.<br><em>Not what was remembered.</em></h1><p>Bring a browser testing session into TraceCue. Review the evidence locally, then decide whether an AI-assisted investigation is useful.</p><p class="demo-label">Public demo is fictional and does not represent an actual customer defect.</p></div><div class="hero-actions"><button id="loadDemo" class="demo-button">Try fictional demo</button><label class="upload">↑ &nbsp; Import session JSON<input type="file" id="file" accept="application/json,.json" hidden></label></div></section>',
       '<section class="metrics"><div class="metric"><small>Event occurrences</small><b id="events">—</b><span>From imported session</span></div><div class="metric"><small>Failures</small><b id="errors">—</b><span>Exceptions and failed requests</span></div><div class="metric"><small>Warnings</small><b id="warnings">—</b><span>Potentially noncritical diagnostics</span></div><div class="metric"><small>Environment</small><b id="environment">—</b><span>Possible extension-related messages</span></div><div class="metric"><small>Interactions</small><b id="actions">—</b><span>User actions</span></div><div class="metric"><small>Duration</small><b id="duration">—</b><span>Seconds captured</span></div></section>',
@@ -45,6 +50,8 @@ app.innerHTML = [
         '<div id="timeline" class="timeline"><div class="empty">No evidence loaded yet.</div></div></section>',
         '<section class="panel" id="intelligence"><div class="panel-head"><div><span class="eyebrow">FIREBASE AI LOGIC</span><h2>Investigation workspace</h2></div><span class="badge">Hybrid AI</span></div>',
         '<div class="tip"><strong>No silent cloud upload.</strong> Run strictly on-device, or inspect and approve the exact text sent to cloud AI.</div>',
+        '<div class="ai-mode-guide"><div class="ai-mode-entry"><span class="ai-mode-icon">⌁</span><div><strong>On-device first</strong><p>Your text stays on your device when a compatible Chrome local model is available.</p></div></div><div class="ai-mode-entry"><span class="ai-mode-icon">↗</span><div><strong>Cloud is optional</strong><p>Only reviewed text is sent to Firebase after your explicit approval.</p></div></div></div>',
+        '<div class="local-readiness"><button type="button" id="checkDevice" class="readiness-button">Check my local AI readiness</button><span id="deviceStatus" role="status">Model availability not checked.</span></div>',
         '<label for="notes">Tester observation / expected result</label><textarea id="notes" rows="4" placeholder="Expected: saving the profile succeeds. Actual: save request fails and the UI does not update."></textarea>',
         '<label class="consent"><input id="includeEnvironment" type="checkbox"><span>Include extension/environment signals in AI prompt (excluded by default)</span></label>',
         '<div id="evidenceCatalog" class="evidence-catalog"></div>',
@@ -250,7 +257,7 @@ async function analyze(mode) {
     $("aiStatus").textContent="Firebase AI unavailable: "+error.message;
   }finally{
     if(serial===activeRequest){
-      $("device").disabled=false;$("cloud").disabled=false;
+      $("device").disabled=!hasFirebase;$("cloud").disabled=!hasFirebase;
     }
   }
 }
@@ -330,3 +337,33 @@ $("playwright").addEventListener("click",() => {
   if (!session) return;
   saveText("tracecue-" + session.id + ".spec.ts",generatePlaywrightDraft(selectedReport()),"text/plain");
 });
+
+
+// TraceCue 0.5: explicit onboarding and optional, browser-local handoff.
+// Neither operation starts recording or submits any data to cloud inference.
+initStudioOnboarding({
+  loadDemo:()=>$("loadDemo").click(),
+  openSection:id=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"})
+});
+initExtensionHandoff({
+  validateReport,
+  onAccept:(report,video)=>{
+    applyReport(report);
+    if(video)videoInspector.attachVideoBlob(video,"Transferred full recording");
+    $("sessionBadge").textContent="Extension handoff · local";
+    $("aiStatus").textContent="Reviewed extension evidence transferred locally. No AI model has been invoked.";
+    $("overview").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+});
+$("checkDevice").addEventListener("click",async()=>{
+  $("deviceStatus").textContent="Checking compatible local language-model support…";
+  try{
+    const status=await checkLocalModelAvailability(globalThis.LanguageModel);
+    $("deviceStatus").textContent=localReadinessLabel(status);
+  }catch(error){
+    $("deviceStatus").textContent="Local model check failed: "+error.message;
+  }
+});
+if(new URLSearchParams(location.search).has("demo") && !location.hash.includes("tracecue-transfer")){
+  $("loadDemo").click();
+}
