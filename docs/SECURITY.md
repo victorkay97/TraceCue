@@ -15,7 +15,7 @@
 
 ## Still required before real-world use
 
-- Stop capture immediately when a tab changes origin, including redirects.
+- Validate the implemented cross-origin navigation stop under redirects and rapid navigation in real Chrome.
 - Field and screen redaction controls, durable retention / purge UI and storage quota.
 - Robust secret scanner for console messages and paths.
 - Threat-model review for malicious web pages, extension messages and prompt injections.
