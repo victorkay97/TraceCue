@@ -10,9 +10,20 @@ if (!report) {
 $("title").textContent = report.title || "Untitled QA session";
 $("meta").textContent = new Date(report.startedAt).toLocaleString() + " · " +
   report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s";
-$("count").textContent = report.events.length + " events";
+// Legacy sessions may have stored warning-level entries under console-error.
+const normalizedKind = event =>
+  event.kind === "console-error" && ["warning","warn"].includes(event.level) ?
+    "console-warning" : event.kind;
+const occurrences = event => Number.isInteger(event.occurrences) && event.occurrences > 0 ?
+  event.occurrences : 1;
+const totalOccurrences = report.events.reduce((n,e)=>n+occurrences(e),0);
+$("count").textContent = report.events.length + " grouped events" +
+  (totalOccurrences !== report.events.length ? " · " + totalOccurrences + " occurrences" : "");
 const categories = new Map();
-for (const event of report.events) categories.set(event.kind,(categories.get(event.kind)||0)+1);
+for (const event of report.events) {
+  const kind = normalizedKind(event);
+  categories.set(kind,(categories.get(kind)||0)+occurrences(event));
+}
 for (const [kind,count] of categories) {
   const element = document.createElement("span");
   element.className = "pill";
@@ -20,20 +31,79 @@ for (const [kind,count] of categories) {
   $("summary").append(element);
 }
 const timeline = $("timeline");
-for (const event of report.events) {
-  const row = document.createElement("div");
-  row.className = "event" + (/error|exception|failure|warning/.test(event.kind) ? " warn" : "") +
-    (event.kind === "issue-marker" ? " marker" : "");
-  const time = document.createElement("time");
-  time.textContent = "+" + ((event.at-report.startedAt)/1000).toFixed(1) + "s";
-  const info = document.createElement("div");
-  const title = document.createElement("strong");
-  title.textContent = event.kind;
-  const desc = document.createElement("p");
-  desc.textContent = Object.entries(event).filter(([key])=>key !== "at" && key !== "kind")
-    .map(([key,value]) => key + ": " + String(value)).join(" · ");
-  info.append(title,desc); row.append(time,info); timeline.append(row);
+let filter = "all";
+function seekEvent(event) {
+  const video = $("video");
+  if (!videoBlob || !video.src) return;
+  const origin = Number.isFinite(report.videoStartedAt) ?
+    report.videoStartedAt : report.startedAt;
+  const elapsed = Math.max(0,(event.at-origin)/1000);
+  const target = Number.isFinite(video.duration) ?
+    Math.min(elapsed,Math.max(0,video.duration-0.01)) : elapsed;
+  video.currentTime = target;
+  video.scrollIntoView({behavior:"smooth",block:"center"});
 }
+function showEvent(event) {
+  const kind = normalizedKind(event);
+  switch(filter) {
+    case "errors":return ["console-error","console-exception","network-failure"].includes(kind);
+    case "warnings":return ["console-warning","warning"].includes(kind);
+    case "actions":return ["click","change","submit","page-ready"].includes(kind);
+    case "markers":return kind === "issue-marker";
+    default:return true;
+  }
+}
+function renderTimeline() {
+  timeline.replaceChildren();
+  const visible = report.events.filter(showEvent);
+  if (visible.length === 0) {
+    const empty=document.createElement("p");
+    empty.className="muted";
+    empty.textContent="No events in this category.";
+    timeline.append(empty);
+    return;
+  }
+  for (const event of visible) {
+    const kind=normalizedKind(event);
+    const row=document.createElement("button");
+    row.type="button";
+    row.className="event event-jump" +
+      (["console-error","console-exception","network-failure"].includes(kind) ? " failure" : "") +
+      (["console-warning","warning"].includes(kind) ? " warn" : "") +
+      (kind === "issue-marker" ? " marker" : "");
+    row.title="Jump to this event in the recording";
+    row.addEventListener("click",()=>seekEvent(event));
+    const time=document.createElement("time");
+    time.textContent="+"+Math.max(0,(event.at-report.startedAt)/1000).toFixed(1)+"s";
+    const info=document.createElement("span");
+    const title=document.createElement("strong");
+    title.textContent=kind;
+    info.append(title);
+    if(occurrences(event)>1) {
+      const repeat=document.createElement("span");
+      repeat.className="repeat";
+      repeat.textContent="×"+occurrences(event);
+      info.append(repeat);
+    }
+    const desc=document.createElement("p");
+    desc.textContent=Object.entries(event)
+      .filter(([key])=>!["at","lastAt","kind","occurrences","signature"].includes(key))
+      .map(([key,value])=>key+": "+String(value)).join(" · ");
+    info.append(desc);
+    row.append(time,info);
+    timeline.append(row);
+  }
+}
+document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click",()=>{
+  filter=button.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach(control=>{
+    const active=control===button;
+    control.classList.toggle("active",active);
+    control.setAttribute("aria-pressed",String(active));
+  });
+  renderTimeline();
+}));
+renderTimeline();
 $("notes").value = report.testerNotes || "";
 $("notes").addEventListener("input",() => {
   report.testerNotes = $("notes").value.slice(0,2500);
