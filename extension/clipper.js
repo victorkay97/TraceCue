@@ -41,9 +41,12 @@ export async function createClipFromVideo(videoBlob,range,onProgress=()=>{}) {
   try{
     element.src=url;
     await once(element,"loadedmetadata",20000);
-    if(!Number.isFinite(element.duration))throw new Error("The recorded video has no usable duration");
-    const start=Math.min(range.start,Math.max(0,element.duration-.1));
-    const end=Math.min(range.end,element.duration);
+    // Browser-recorded WebM may report Infinity until its duration metadata
+    // is indexed. Use the session's known endpoint and let seek/playback fail
+    // explicitly if this Chrome build cannot seek the resulting blob.
+    const recordedEnd=Number.isFinite(element.duration)?element.duration:range.end;
+    const start=Math.min(range.start,Math.max(0,recordedEnd-.1));
+    const end=Math.min(range.end,recordedEnd);
     if(end<=start+.05)throw new Error("Clip is outside the recording");
     element.currentTime=start;
     await once(element,"seeked",20000);
