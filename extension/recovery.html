@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TraceCue · Recover sessions</title><link rel="stylesheet" href="viewer.css"><style>
+.recovery-list{display:grid;gap:12px;margin:22px 0}.recovery-item{border:1px solid #39535f;padding:18px;border-radius:12px;background:#172631;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}.recovery-item strong{display:block;color:#dbeeea;margin-bottom:5px}.recovery-item small{color:#9cb9c5;display:block}.recovery-item button{padding:12px 15px}.recovery-item button:disabled{opacity:.5}
+</style></head><body>
+<header class="top"><div class="identity"><span class="logo">T</span><div><strong>TraceCue</strong><small>QA Companion</small></div></div><span class="status">Local recovery</span></header>
+<main><div class="eyebrow">INTERRUPTED RECORDINGS</div><h1>Recover your evidence.</h1>
+<p class="muted">TraceCue checkpoints events and partial video locally. After an unexpected shutdown, recover what was saved without inventing missing frames or events.</p>
+<div class="notice"><strong>Important:</strong> Recovered recordings can be truncated or unplayable. Always inspect the video and timestamps before sharing.</div>
+<div id="recoveryList" class="recovery-list"></div><p id="recoveryStatus" class="muted" role="status">Searching local drafts…</p>
+<button id="refresh" class="secondary">Refresh list</button></main>
+<script type="module" src="recovery.js"></script></body></html>
