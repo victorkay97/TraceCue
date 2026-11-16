@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {evidenceCatalog,prepareInvestigation,parseInvestigation,structuredToMarkdown} from "../studio/src/evidence-intelligence.js";
+import {evidenceCatalog,prepareInvestigation,parseInvestigation,structuredToMarkdown,recordedObservations,evidenceCoverage} from "../studio/src/evidence-intelligence.js";
 const fixture=()=>({
   schema:"tracecue-session-v1",id:"test",startedAt:1000,stoppedAt:9000,
   events:[
@@ -38,4 +38,33 @@ test("unsupported AI evidence citations are dropped",()=>{
 });
 test("malformed model output is not fabricated into a structured result",()=>{
   assert.equal(parseInvestigation("This is a bug",[]).structured,null);
+});
+
+test("captured signals contain only structured diagnostic facts",()=>{
+  const recorded=recordedObservations(evidenceCatalog(fixture()));
+  assert.equal(recorded.some(x=>x.description.includes("HTTP 404")),true);
+  assert.equal(recorded.some(x=>x.description.includes("console error")),true);
+  assert.equal(recorded.some(x=>x.description.includes("Extension")),false);
+  assert.equal(recorded.find(x=>x.id==="EV0003").description,"HTTP 404 recorded for POST request at +1.1s");
+});
+test("a missing AI observed field stays blank and lowers evidence completeness",()=>{
+  const json=JSON.stringify({
+    title:"Proposed defect",summary:"HTTP 404 observed",
+    reproductionSteps:[{step:"Click save",evidenceIds:["EV0002"]}],
+    missingInformation:["Expected result"],confidence:"high"
+  });
+  const result=parseInvestigation(json,["EV0002"]).structured;
+  assert.equal(result.observed,"");
+  const quality=evidenceCoverage(result);
+  assert.equal(quality.status,"incomplete");
+  assert.equal(quality.issues.some(x=>x.includes("did not provide")),true);
+});
+test("model high confidence is not treated as independently verified accuracy",()=>{
+  const coverage=evidenceCoverage({
+    observed:"Recorded error",confidence:"high",
+    reproductionSteps:[{step:"Click",evidenceIds:[]}],
+    missingInformation:["Expected behavior"]
+  });
+  assert.equal(coverage.status,"incomplete");
+  assert.equal(coverage.issues.some(x=>x.includes("do not cite")),true);
 });
