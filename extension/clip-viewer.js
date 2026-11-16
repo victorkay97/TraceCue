@@ -308,6 +308,14 @@ export async function setupClipViewer({
         controls.append(generate);
       }
       const base=()=>clipFileName(id,idFor(marker),label(marker)).replace(/\.webm$/,"");
+      controls.append(button("Copy report",async()=>{
+        try{
+          await navigator.clipboard.writeText(issueDraft(report,marker.event));
+          $("clipStatus").textContent="Copied "+label(marker)+" issue draft. Review it before sharing.";
+        }catch(error){
+          $("clipStatus").textContent="Clipboard unavailable: "+error.message+". Download the Markdown instead.";
+        }
+      }));
       controls.append(button("Issue report (.md)",()=>{
         download(new Blob([issueDraft(report,marker.event)],{type:"text/markdown"}),base()+".md");
       }));
