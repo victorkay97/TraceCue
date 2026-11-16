@@ -135,7 +135,6 @@ async function stop() {
 chrome.action.onClicked.addListener(async tab => {
   if(!tab?.id || !/^https?:\/\//.test(tab.url||""))return;
   try{
-    await chrome.sidePanel.setOptions({tabId:tab.id,path:"sidepanel.html",enabled:true});
     await chrome.sidePanel.open({tabId:tab.id});
     await observe(tab.id);
     await chrome.scripting.executeScript({target:{tabId:tab.id},files:["companion.js"]});
