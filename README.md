@@ -28,7 +28,7 @@ npm install
 npm run dev
 ~~~
 
-Open the Vite URL, import a TraceCue session JSON from the extension viewer, and inspect the local timeline. To enable AI, configure your own Firebase web app with Firebase AI Logic and App Check. See [the setup guide](docs/SETUP.md).
+Open the Vite URL, import a TraceCue session JSON from the extension viewer, and inspect the local timeline. For a controlled recorder test, open `http://127.0.0.1:5173/qa-fixture.html` while Studio's Vite dev server is running; see the setup guide. To enable AI, configure your own Firebase web app with Firebase AI Logic and App Check. See [the setup guide](docs/SETUP.md).
 
 ## Privacy rules
 
