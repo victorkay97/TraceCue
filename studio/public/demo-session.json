@@ -1,0 +1,57 @@
+{
+  "schema": "tracecue-session-v1",
+  "id": "tc-public-demo-001",
+  "title": "DEMO DATA — Fictional profile-save failure",
+  "url": "https://example.test/fictional-profile",
+  "startedAt": 1794834000000,
+  "stoppedAt": 1794834020000,
+  "environment": {
+    "browser": "Synthetic Chrome development fixture",
+    "platform": "Demo"
+  },
+  "videoStored": false,
+  "droppedEvents": 0,
+  "testerNotes": "Synthetic test evidence only. Expected: save succeeds. Actual: a fictional HTTP 500 is recorded. Do not submit as a real bug.",
+  "events": [
+    {
+      "kind": "capture-started",
+      "at": 1794834000000,
+      "video": false
+    },
+    {
+      "kind": "page-ready",
+      "at": 1794834001000,
+      "element": "document"
+    },
+    {
+      "kind": "click",
+      "at": 1794834006000,
+      "element": "button"
+    },
+    {
+      "kind": "network-failure",
+      "at": 1794834006300,
+      "status": 500,
+      "method": "POST",
+      "url": "https://example.test/api/profile"
+    },
+    {
+      "kind": "console-error",
+      "at": 1794834006500,
+      "level": "error",
+      "message": "Request failed with status 500"
+    },
+    {
+      "kind": "issue-marker",
+      "at": 1794834010000,
+      "message": "Tester marked a possible defect",
+      "markerId": "m-demo-001",
+      "title": "Fictional save error",
+      "lookbackSeconds": 15
+    },
+    {
+      "kind": "capture-stopped",
+      "at": 1794834020000
+    }
+  ]
+}
