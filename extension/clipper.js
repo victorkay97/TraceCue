@@ -18,8 +18,13 @@ export function clipKey(sessionId,markerId) {
   if(!safe(sessionId)||!safe(markerId))throw new Error("Clip key missing identifiers");
   return "clip:"+safe(sessionId)+":"+safe(markerId);
 }
-export function clipFileName(sessionId,markerId) {
-  return clipKey(sessionId,markerId).replaceAll(":","-")+".webm";
+export function clipFileName(sessionId,markerId,title="") {
+  const slug=String(title||"").normalize("NFKD").toLowerCase()
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60);
+  // Include the immutable marker ID to prevent collisions between identically
+  // titled issues and preserve a stable association with the full recording.
+  const base=clipKey(sessionId,markerId).replaceAll(":","-");
+  return base+(slug?"-"+slug:"")+".webm";
 }
 const once=(target,event,timeout=10000)=>new Promise((resolve,reject)=>{
   const timer=setTimeout(()=>{cleanup();reject(new Error(event+" timed out"));},timeout);
