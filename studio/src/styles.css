@@ -26,3 +26,17 @@
 .handoff textarea{font-size:11px;min-height:150px}
 .handoff .actions{flex-wrap:wrap}
 .handoff .actions button{font-size:12px}
+
+
+.video-inspector{border:1px solid #354d58;background:#111f2b;border-radius:12px;margin:14px 0;padding:12px}
+.video-top{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.video-top strong{font-size:12px;color:#deefec}
+.video-upload{border:1px solid #46646d;background:#213943;padding:9px 11px;border-radius:9px;color:#b8e7db;font-size:11px;font-weight:700;cursor:pointer}
+.video-inspector p{font-size:11px;line-height:1.6}
+.video-inspector video{width:100%;max-height:300px;border-radius:10px;background:#05090d;margin-top:8px}
+.video-markers{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.video-marker{background:#254148;color:#bce1db;border:1px solid #437079;border-radius:8px;padding:7px;font-size:11px}
+.video-marker:hover{background:#345b63}
+.event{cursor:pointer}.event:hover,.event:focus-visible,.event.video-active{background:#1e3741}
+.event:focus-visible{outline:2px solid #a8e0db}
+.video-inspector .small{font-size:10px}
