@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-16 — Controlled fixture traceability
+
+- Added safe, explicitly named data-testid capture without logging user input values.
+- The QA fixture now displays counts of triggered scenarios so a missing warning can be diagnosed.
+- Redacted extension IDs, bearer tokens and query parameters in newly recorded diagnostic strings.
+- Added automated tests for sanitization; real Chrome behavior after the patch is unverified.
+
+
 ## 2026-11-16 — Provenance-aware browser diagnostics
 
 - Confirmed from a tester screenshot that some captured exceptions referenced Chrome extension scripts rather than the test application.

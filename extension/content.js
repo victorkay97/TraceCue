@@ -9,7 +9,11 @@
     const name = item.tagName.toLowerCase();
     const kind = (item.getAttribute("type") || "").toLowerCase();
     const role = (item.getAttribute("role") || "").toLowerCase();
-    return [name, /^[a-z-]{1,20}$/.test(kind) ? kind : "", /^[a-z-]{1,20}$/.test(role) ? role : ""].filter(Boolean).join(" ");
+    const testId = (item.getAttribute("data-testid") || "").toLowerCase();
+    // Explicit short QA label only; never log text, arbitrary IDs or input values.
+    const safeTestId = /^[a-z][a-z0-9-]{0,39}$/.test(testId) ? "testid:" + testId : "";
+    return [name, /^[a-z-]{1,20}$/.test(kind) ? kind : "",
+      /^[a-z-]{1,20}$/.test(role) ? role : "", safeTestId].filter(Boolean).join(" ");
   };
   const send = (kind, element) => {
     try {

@@ -43,3 +43,14 @@ export function classifyDiagnostic(kind, data={}, context={}) {
   }
   return {kind,data};
 }
+
+export function redactDiagnosticText(value,max=220) {
+  const str=String(value ?? "")
+    .replace(/chrome-extension:\/\/[^\s"'<>]+/gi,"[browser-extension]")
+    .replace(/Bearer\s+\S+/gi,"Bearer [REDACTED]")
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,"[EMAIL]")
+    .replace(/\b(?:\d[ -]*?){13,19}\b/g,"[NUMBER]")
+    .replace(/(?:token|password|secret|api[_-]?key)\s*[:=]\s*\S+/gi,"[REDACTED]")
+    .replace(/https?:\/\/[^\s"'<>]+/gi,url=>safeEvidenceUrl(url));
+  return str.slice(0,max);
+}

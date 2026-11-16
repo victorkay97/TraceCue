@@ -30,12 +30,13 @@ code{color:#c3dfe7}
 <section class="panel">
 <h2>Controlled test actions</h2>
 <div class="grid">
-  <button id="fail">1. Simulate failed save (HTTP 404)</button>
-  <button id="warn" class="secondary">2. Trigger repeated console warnings</button>
-  <button id="throw" class="secondary">3. Trigger an uncaught exception</button>
-  <button id="clear" class="secondary">Reset visual status</button>
+  <button id="fail" data-testid="fixture-failed-save">1. Simulate failed save (HTTP 404)</button>
+  <button id="warn" data-testid="fixture-warnings" class="secondary">2. Trigger repeated console warnings</button>
+  <button id="throw" data-testid="fixture-exception" class="secondary">3. Trigger an uncaught exception</button>
+  <button id="clear" data-testid="fixture-reset" class="secondary">Reset visual status</button>
 </div>
 <div id="status" role="status" aria-live="polite">Ready. Start TraceCue first, then click the actions above.</div>
+<div style="padding-top:15px;font-size:13px;color:#b2dfd6">Actions triggered: <strong id="audit-count">Save 0 · Warning batch 0 · Exception 0</strong></div>
 </section>
 <section class="panel">
 <h2>Expected evidence</h2>
@@ -47,7 +48,15 @@ code{color:#c3dfe7}
 </main>
 <script>
 const status=document.getElementById("status");
+const counts={fail:0,warn:0,exception:0};
+function acknowledge(name) {
+  counts[name]++;
+  document.getElementById("audit-count").textContent=
+    "Save "+counts.fail+" · Warning batch "+counts.warn+
+    " (4 console.warn each) · Exception "+counts.exception;
+}
 document.getElementById("fail").addEventListener("click",async()=>{
+  acknowledge("fail");
   status.textContent="Simulating a failed save…";
   try {
     // The dev server intentionally has no handler for this POST path.
@@ -62,10 +71,12 @@ document.getElementById("fail").addEventListener("click",async()=>{
   }
 });
 document.getElementById("warn").addEventListener("click",()=>{
+  acknowledge("warn");
   for(let i=0;i<4;i++) console.warn("TraceCue fixture: repeatable, non-critical warning");
   status.textContent="Generated four identical warnings.";
 });
 document.getElementById("throw").addEventListener("click",()=>{
+  acknowledge("exception");
   status.textContent="Generating one intentional JavaScript exception.";
   throw new TypeError("TraceCue fixture: deliberate unhandled exception for QA testing");
 });

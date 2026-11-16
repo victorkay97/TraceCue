@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { classifyDiagnostic, safeEvidenceUrl } from "../extension/diagnostics.js";
+import { classifyDiagnostic, safeEvidenceUrl, redactDiagnosticText } from "../extension/diagnostics.js";
 
 test("Chrome extension exceptions become environment diagnostics",()=>{
   const result=classifyDiagnostic("console-exception",{message:"Uncaught (in promise)"},
@@ -33,4 +33,15 @@ test("private script IDs, query params, and identifiers are not exported as URLs
 });
 test("unknown warnings are preserved rather than silently suppressed",()=>{
   assert.equal(classifyDiagnostic("console-warning",{message:"Unknown warning"}).kind,"console-warning");
+});
+
+test("removes browser extension IDs from console messages",()=>{
+  const clean=redactDiagnosticText("chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/inpage.js:9");
+  assert.equal(clean.includes("nkbihfbeogaeaoehlefnkodbefgpgknn"),false);
+  assert.match(clean,/\[browser-extension\]/);
+});
+test("redacts bearer tokens and query strings in diagnostics",()=>{
+  const clean=redactDiagnosticText("Bearer abc123 at https://example.test/profile?token=secret");
+  assert.equal(clean.includes("abc123"),false);
+  assert.equal(clean.includes("secret"),false);
 });

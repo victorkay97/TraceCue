@@ -1,4 +1,4 @@
-import { classifyDiagnostic, safeEvidenceUrl } from "./diagnostics.js";
+import { classifyDiagnostic, safeEvidenceUrl, redactDiagnosticText } from "./diagnostics.js";
 // TraceCue service worker. Captures a single user-selected HTTP(S) tab.
 // This is not a background browsing monitor. No content or telemetry is uploaded.
 let session = null;
@@ -9,13 +9,7 @@ const ready = chrome.storage.session.get("tracecueActive").then(({tracecueActive
   if (tracecueActive) session = {...tracecueActive,requests:new Map(),contexts:new Map()};
 }).catch(() => {});
 
-function scrub(value,max=220) {
-  return String(value ?? "").slice(0,max)
-    .replace(/Bearer\s+\S+/gi,"Bearer [REDACTED]")
-    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,"[EMAIL]")
-    .replace(/\b(?:\d[ -]*?){13,19}\b/g,"[NUMBER]")
-    .replace(/(?:token|password|secret|api[_-]?key)\s*[:=]\s*\S+/gi,"[REDACTED]");
-}
+const scrub = redactDiagnosticText;
 const cleanUrl = safeEvidenceUrl;
 function schedulePersist() {
   if (!persistTimer) persistTimer = setTimeout(() => {
