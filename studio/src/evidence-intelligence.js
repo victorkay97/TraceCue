@@ -83,3 +83,34 @@ export function structuredToMarkdown(s) {
     "","### Regression checks (not executed)","",...s.regressionChecks.map(x=>"- "+x),
     "","Confidence: "+s.confidence].join("\n");
 }
+
+
+// Deterministic facts from captured structured events, not model-generated text.
+export function recordedObservations(catalog=[]) {
+  return catalog.filter(x=>["network-failure","console-error","console-exception","console-warning","issue-marker"].includes(x.kind))
+    .slice(0,20).map(x=>{
+      let description;
+      if(x.kind==="network-failure"){
+        const code=Number.isInteger(x.status) ? "HTTP "+x.status : "a failed request";
+        description=code+" recorded"+(x.method?" for "+x.method+" request":"")+" at +"+x.second+"s";
+      } else if(x.kind==="issue-marker") {
+        description="Tester inserted an issue marker at +"+x.second+"s";
+      } else {
+        description=x.kind.replaceAll("-"," ")+" recorded at +"+x.second+"s";
+      }
+      if(x.occurrences>1)description+=" ("+x.occurrences+" occurrences)";
+      return {id:x.id,description};
+    });
+}
+export function evidenceCoverage(analysis) {
+  if(!analysis)return {status:"unknown",issues:["No model analysis available"]};
+  const issues=[];
+  if(!analysis.observed)issues.push("The AI did not provide a separate observed-behavior statement.");
+  const steps=analysis.reproductionSteps||[];
+  if(!steps.length)issues.push("No reproduction steps were proposed.");
+  else if(steps.some(step=>!step.evidenceIds?.length))
+    issues.push("Some proposed steps do not cite captured evidence.");
+  if((analysis.missingInformation||[]).length)
+    issues.push("The investigation identifies missing reproduction information.");
+  return {status:issues.length?"incomplete":"review-required",issues};
+}
