@@ -29,3 +29,21 @@
 .clip-title-input:focus-visible,.clip-notes:focus-visible{outline:2px solid #9edbd7}
 .clip-notes{resize:vertical;min-height:60px;margin-bottom:3px;line-height:1.5}
 .clip-controls button{white-space:nowrap}
+
+
+/* Issue-specific trim editor and synchronized technical evidence */
+.clip-trimmer{background:#0e1e29;border:1px solid #34515e;border-radius:10px;padding:13px;margin:12px 0}
+.clip-time-fields{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px}
+.clip-time-fields label{flex:1;min-width:90px;color:#b8ced8;font-size:11px;font-weight:600}
+.clip-time-fields input{display:block;width:100%;min-width:0;margin-top:6px;padding:9px;color:#e9f6f4;background:#0b1620;border:1px solid #41616a;border-radius:8px;font-size:12px}
+.clip-edit-status{font-size:11px;color:#dfbd99;min-height:12px;margin:5px 0 0}
+.clip-evidence{margin-top:13px;border-top:1px solid #355264;padding-top:13px}
+.clip-evidence summary{font-weight:750;font-size:12px;color:#c4e5df;cursor:pointer}
+.clip-evidence>small{display:block;line-height:1.5;margin:7px 0 9px;color:#94aebb}
+.clip-evidence-filters{display:flex;justify-content:flex-end;margin:9px 0}
+.clip-evidence-filters select{background:#102732;color:#d8edeb;border:1px solid #3a5b68;border-radius:8px;padding:8px;font-size:11px;max-width:100%}
+.clip-evidence-list{display:grid;max-height:270px;overflow:auto;gap:5px}
+.clip-evidence-row{width:100%;display:block;padding:9px 11px;text-align:left;background:#122b36;border:1px solid #294754;color:#b7cbd4;border-radius:8px;font-size:11px;line-height:1.55;white-space:normal;overflow-wrap:anywhere}
+.clip-evidence-row:hover,.clip-evidence-row:focus-visible,.clip-evidence-active{background:#315453;border-color:#7acbb8;color:#f0fffa}
+.clip-row .clip-controls{margin-top:12px}
+.clip-row .clip-controls button{max-width:100%;white-space:normal}
