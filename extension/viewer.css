@@ -22,3 +22,10 @@
 .clip-controls button{font-size:11px;padding:8px 10px}
 #clipStatus{margin:12px 0}#clipPreview{margin-top:12px;min-height:150px;max-height:270px}
 #retryClips{margin-top:8px}
+
+
+.clip-field-label{display:block!important;margin:12px 0 6px!important;color:#bad8dc;font-size:11px!important;font-weight:650}
+.clip-title-input,.clip-notes{display:block;background:#0b1924;border:1px solid #385461;border-radius:9px;color:#edf6f5;padding:10px;width:100%;font:inherit;font-size:12px}
+.clip-title-input:focus-visible,.clip-notes:focus-visible{outline:2px solid #9edbd7}
+.clip-notes{resize:vertical;min-height:60px;margin-bottom:3px;line-height:1.5}
+.clip-controls button{white-space:nowrap}
