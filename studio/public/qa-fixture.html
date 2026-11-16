@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraceCue QA Fixture — Controlled Defect Scenarios</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e7f5f1;background:#0c1821}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(20px,5vw,64px)}
+main{max-width:820px;margin:0 auto}
+h1{font-size:clamp(30px,5vw,46px);margin:8px 0}
+p{color:#aabec7;line-height:1.55}
+small{color:#92d6d4;text-transform:uppercase;letter-spacing:2px;font-weight:700}
+.panel{background:#172834;border:1px solid #2f4556;border-radius:18px;padding:24px;margin-top:26px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+button{background:#bae9e2;color:#113333;border:0;border-radius:12px;padding:15px 16px;font-size:14px;font-weight:800;cursor:pointer;text-align:left}
+button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+button.secondary{background:#2c4352;color:#e3eff3}
+#status{margin:18px 0 0;padding:15px;background:#0b1d2a;border-radius:10px;min-height:56px;color:#e4eebd}
+code{color:#c3dfe7}
+@media(max-width:650px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<small>TraceCue · Development fixture</small>
+<h1>Reproduce a known failure.</h1>
+<p>This local test page uses fictional data only. It deliberately generates one failing network request, one JavaScript exception and repeatable warning logs so you can check TraceCue's evidence recorder and filters without recording somebody else's website.</p>
+<section class="panel">
+<h2>Controlled test actions</h2>
+<div class="grid">
+  <button id="fail">1. Simulate failed save (HTTP 404)</button>
+  <button id="warn" class="secondary">2. Trigger repeated console warnings</button>
+  <button id="throw" class="secondary">3. Trigger an uncaught exception</button>
+  <button id="clear" class="secondary">Reset visual status</button>
+</div>
+<div id="status" role="status" aria-live="polite">Ready. Start TraceCue first, then click the actions above.</div>
+</section>
+<section class="panel">
+<h2>Expected evidence</h2>
+<p><strong>Failed save:</strong> at least one failed network request, plus a console error. The simulated UI reports an error.</p>
+<p><strong>Warnings:</strong> several identical warning messages, eligible for grouping as one entry with multiple occurrences.</p>
+<p><strong>Uncaught exception:</strong> one JavaScript exception, not merely a warning.</p>
+<p>Use <code>Ctrl+Shift+9</code> to add an issue marker during recording. Stop TraceCue and compare these events with the recorded video.</p>
+</section>
+</main>
+<script>
+const status=document.getElementById("status");
+document.getElementById("fail").addEventListener("click",async()=>{
+  status.textContent="Simulating a failed save…";
+  try {
+    // The dev server intentionally has no handler for this POST path.
+    const response=await fetch("/__tracecue_fixture_expected_404__",{
+      method:"POST",headers:{"Content-Type":"text/plain"},body:"synthetic-test-request"
+    });
+    status.textContent="Expected failure fixture: request returned HTTP "+response.status;
+    console.error("TraceCue fixture: simulated save request returned HTTP "+response.status);
+  }catch(error){
+    status.textContent="Expected failure fixture: network request did not complete";
+    console.error("TraceCue fixture: simulated save request could not complete");
+  }
+});
+document.getElementById("warn").addEventListener("click",()=>{
+  for(let i=0;i<4;i++) console.warn("TraceCue fixture: repeatable, non-critical warning");
+  status.textContent="Generated four identical warnings.";
+});
+document.getElementById("throw").addEventListener("click",()=>{
+  status.textContent="Generating one intentional JavaScript exception.";
+  throw new TypeError("TraceCue fixture: deliberate unhandled exception for QA testing");
+});
+document.getElementById("clear").addEventListener("click",()=>{
+  status.textContent="Visual status reset. No application data was changed.";
+});
+</script>
+</body>
+</html>
