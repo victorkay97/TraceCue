@@ -81,7 +81,8 @@ export function exportIssue(report,notes,analysis) {
     "s " + eventKind(e) + (times(e) > 1 ? " (×" + times(e) + ")" : "") +
     ": " + [e.element,e.status,e.message].filter(Boolean).join(" · "));
   return [
-    "# " + (report.title || "QA observation"),"",
+    "# " + (report.issueTitle || "Untitled QA observation"),"",
+    "Tested page: " + clean(report.title || "Unknown page",160),"",
     "## Tester observations","",notes || "(No notes provided)","",
     "## Session","",
     "- Recorded: " + new Date(report.startedAt).toISOString(),
