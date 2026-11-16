@@ -47,3 +47,12 @@
 .clip-evidence-row:hover,.clip-evidence-row:focus-visible,.clip-evidence-active{background:#315453;border-color:#7acbb8;color:#f0fffa}
 .clip-row .clip-controls{margin-top:12px}
 .clip-row .clip-controls button{max-width:100%;white-space:normal}
+
+
+.clip-evidence-filters{align-items:center;flex-wrap:wrap;gap:8px}
+.clip-evidence-search{width:min(250px,100%);flex:1;min-width:140px;background:#0b1e29;border:1px solid #365360;border-radius:8px;padding:8px 10px;color:#edf6f7;font-size:11px}
+.clip-qa-fields{border-top:1px dashed #36535f;margin:15px 0 4px;padding:8px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
+.clip-qa-fields .clip-field-label:has(textarea){grid-column:1/-1}
+.clip-qa-select,.clip-qa-input{display:block;width:100%;background:#0c1b27;border:1px solid #3b5362;border-radius:8px;color:#e1eef3;padding:9px;margin-top:6px;font-size:12px}
+.clip-qa-input{min-height:50px;resize:vertical;font-family:inherit;line-height:1.5}
+@media(max-width:500px){.clip-qa-fields{grid-template-columns:1fr}}
