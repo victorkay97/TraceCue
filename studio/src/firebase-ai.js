@@ -37,7 +37,18 @@ export async function investigate(prompt,mode,progress) {
   const inferenceMode = mode === "device" ? InferenceMode.ONLY_ON_DEVICE :
     mode === "cloud" ? InferenceMode.ONLY_IN_CLOUD : null;
   if (!inferenceMode) throw new Error("Unsupported inference mode.");
-  const model = getGenerativeModel(backend,{mode:inferenceMode});
+  // Chrome Prompt API requires the expected text language for this model.
+  // Firebase forwards these parameters to LanguageModel.create().
+  const options = {mode:inferenceMode};
+  if (mode === "device") {
+    options.onDeviceParams = {
+      createOptions: {
+        expectedInputs: [{type:"text",languages:["en"]}],
+        expectedOutputs: [{type:"text",languages:["en"]}]
+      }
+    };
+  }
+  const model = getGenerativeModel(backend,options);
   if (mode === "device") {
     progress?.("Preparing Chrome local model. First-time download may be substantial.");
     // Invoked synchronously from the user's click before calling generateContent.
