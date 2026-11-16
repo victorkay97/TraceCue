@@ -1,3 +1,4 @@
+import { classifyDiagnostic, safeEvidenceUrl } from "./diagnostics.js";
 // TraceCue service worker. Captures a single user-selected HTTP(S) tab.
 // This is not a background browsing monitor. No content or telemetry is uploaded.
 let session = null;
@@ -5,7 +6,7 @@ let persistTimer = null;
 let pendingOffscreen = null;
 const MAX_EVENTS = 4000;
 const ready = chrome.storage.session.get("tracecueActive").then(({tracecueActive}) => {
-  if (tracecueActive) session = {...tracecueActive,requests:new Map()};
+  if (tracecueActive) session = {...tracecueActive,requests:new Map(),contexts:new Map()};
 }).catch(() => {});
 
 function scrub(value,max=220) {
@@ -15,43 +16,20 @@ function scrub(value,max=220) {
     .replace(/\b(?:\d[ -]*?){13,19}\b/g,"[NUMBER]")
     .replace(/(?:token|password|secret|api[_-]?key)\s*[:=]\s*\S+/gi,"[REDACTED]");
 }
-function cleanUrl(raw) {
-  try {
-    const url = new URL(raw);
-    // URLs may contain identifiers even in the path; limit them aggressively.
-    return url.origin + url.pathname.split("/").map(part => {
-      if (!part) return "";
-      return /^[a-zA-Z_-]{1,35}$/.test(part) ? part : "[id]";
-    }).join("/");
-  } catch { return "[unknown]"; }
-}
+const cleanUrl = safeEvidenceUrl;
 function schedulePersist() {
   if (!persistTimer) persistTimer = setTimeout(() => {
     persistTimer = null;
     persist().catch(() => {});
   },1000);
 }
-// Best-effort evidence classification. This is a source hint, not proof of origin.
-// The original error message and severity remain available for reviewer inspection.
-function classifyDiagnostic(kind,data) {
-  if (!["console-warning","console-error"].includes(kind)) return {kind,data};
-  const message = String(data.message || "");
-  if (/unchecked runtime\.lastError|could not establish connection.*receiving end does not exist/i.test(message) &&
-      /(could not establish connection|receiving end does not exist|message port closed)/i.test(message)) {
-    return {kind:"environment-diagnostic",data:{
-      ...data,sourceHint:"possible-extension-messaging",
-      originalKind:kind
-    }};
-  }
-  return {kind,data};
-}
 // Repeated diagnostic messages are counted without flooding the evidence list.
-function record(kind,data={}) {
+function record(kind,data={},context={}) {
   if (!session) return;
-  ({kind,data} = classifyDiagnostic(kind,data));
+  ({kind,data} = classifyDiagnostic(kind,data,context));
   const now = Date.now();
   if (["console-warning","console-error","console-exception","environment-diagnostic"].includes(kind)) {
-    const signature = JSON.stringify([kind,data.level ?? "",data.message ?? "",data.url ?? ""]);
+    const signature = JSON.stringify([kind,data.level ?? "",data.message ?? "",data.url ?? "",data.sourceHint ?? ""]);
     const recent = session.events.slice(-20).reverse().find(event =>
       event.signature === signature && now - (event.lastAt || event.at) <= 4000
     );
@@ -69,7 +47,7 @@ function record(kind,data={}) {
 }
 async function persist() {
   if (!session) return;
-  const {requests,...safe} = session;
+  const {requests,contexts,...safe} = session;
   await chrome.storage.session.set({tracecueActive:safe});
 }
 async function offscreenReady() {
@@ -97,7 +75,7 @@ async function start(tab) {
     id:"tc-" + Date.now(),tabId:tab.id,title:scrub(tab.title,160),
     url:cleanUrl(tab.url),startedAt:Date.now(),events:[],droppedEvents:0,
     environment:{userAgent:navigator.userAgent,platform:navigator.platform || "unknown"},
-    video:false,videoStartedAt:null,attached:false,requests:new Map()
+    video:false,videoStartedAt:null,attached:false,requests:new Map(),contexts:new Map()
   };
   await persist();
   // The action click supplies the user gesture for tabCapture.
@@ -205,28 +183,78 @@ chrome.debugger.onDetach.addListener(async (source,reason) => {
 chrome.debugger.onEvent.addListener(async (source,method,params) => {
   await ready;
   if (!session || source.tabId !== session.tabId) return;
+  if (method === "Runtime.executionContextCreated") {
+    const context = params.context;
+    if (context?.id != null) {
+      session.contexts.set(context.id,{
+        origin:String(context.origin || ""),name:String(context.name || ""),
+        isIsolated:context.auxData?.isDefault === false
+      });
+      if (session.contexts.size > 200) session.contexts.clear();
+    }
+    return;
+  }
+  if (method === "Runtime.executionContextDestroyed") {
+    session.contexts.delete(params.executionContextId);
+    return;
+  }
+  if (method === "Runtime.executionContextsCleared") {
+    session.contexts.clear();
+    return;
+  }
   if (method === "Network.requestWillBeSent") {
-    session.requests.set(params.requestId,{method:params.request?.method || "?",url:cleanUrl(params.request?.url)});
+    const rawUrl = params.request?.url || "";
+    session.requests.set(params.requestId,{
+      method:params.request?.method || "?",
+      url:cleanUrl(rawUrl),
+      rawExtension:/^chrome-extension:\/\//i.test(rawUrl)
+    });
     if (session.requests.size > 500) session.requests.clear();
   } else if (method === "Network.responseReceived") {
     const request = session.requests.get(params.requestId);
     session.requests.delete(params.requestId);
-    if (params.response?.status >= 400) record("network-failure",{
-      status:params.response.status,method:request?.method || "?",
-      url:request?.url || cleanUrl(params.response?.url)
-    });
+    if (params.response?.status >= 400) {
+      const rawUrl = params.response?.url || "";
+      record("network-failure",{
+        status:params.response.status,method:request?.method || "?",
+        url:request?.url || cleanUrl(rawUrl)
+      },{url:request?.rawExtension ? "chrome-extension://recorded" : rawUrl});
+    }
   } else if (method === "Network.loadingFailed") {
     const request = session.requests.get(params.requestId);
     session.requests.delete(params.requestId);
-    record("network-failure",{method:request?.method || "?",url:request?.url || "[unknown]",message:scrub(params.errorText)});
+    record("network-failure",{
+      method:request?.method || "?",url:request?.url || "[unknown]",
+      message:scrub(params.errorText)
+    },{url:request?.rawExtension ? "chrome-extension://recorded" : ""});
   } else if (method === "Runtime.exceptionThrown") {
-    record("console-exception",{message:scrub(params.exceptionDetails?.text),url:cleanUrl(params.exceptionDetails?.url)});
-  } else if (method === "Runtime.consoleAPICalled" && ["error","warning","warn","assert"].includes(params.type)) {
-    // Preserve severity. Warning-level framework noise is not evidence of a bug.
+    const detail = params.exceptionDetails || {};
+    const context = session.contexts.get(detail.executionContextId);
+    const stackUrl = detail.stackTrace?.callFrames?.find(frame=>frame.url)?.url || "";
+    const originUrl = detail.url || stackUrl;
+    record("console-exception",{
+      message:scrub(detail.text),
+      url:cleanUrl(originUrl)
+    },{url:detail.url,stackUrl,contextOrigin:context?.origin,
+       contextName:context?.name,isIsolated:context?.isIsolated});
+  } else if (method === "Runtime.consoleAPICalled" &&
+             ["error","warning","warn","assert"].includes(params.type)) {
+    const context = session.contexts.get(params.executionContextId);
+    const stackUrl = params.stackTrace?.callFrames?.find(frame=>frame.url)?.url || "";
     const kind = ["warning","warn"].includes(params.type) ? "console-warning" : "console-error";
-    record(kind,{level:params.type,message:scrub((params.args || []).map(x => x.value ?? x.description ?? "").join(" "))});
-  } else if (method === "Log.entryAdded" && ["error","warning","warn"].includes(params.entry?.level)) {
-    const kind = ["warning","warn"].includes(params.entry.level) ? "console-warning" : "console-error";
-    record(kind,{level:params.entry.level,message:scrub(params.entry.text)});
+    record(kind,{
+      level:params.type,
+      message:scrub((params.args || []).map(x=>x.value ?? x.description ?? "").join(" "))
+    },{stackUrl,contextOrigin:context?.origin,
+       contextName:context?.name,isIsolated:context?.isIsolated});
+  } else if (method === "Log.entryAdded" &&
+             ["error","warning","warn"].includes(params.entry?.level)) {
+    const entry = params.entry;
+    const stackUrl = entry.stackTrace?.callFrames?.find(frame=>frame.url)?.url || "";
+    const kind = ["warning","warn"].includes(entry.level) ? "console-warning" : "console-error";
+    record(kind,{
+      level:entry.level,message:scrub(entry.text),
+      url:entry.url ? cleanUrl(entry.url) : undefined
+    },{url:entry.url,stackUrl});
   }
 });

@@ -106,3 +106,14 @@ test("a browsing session is not automatically labeled as a defect",()=>{
   assert.match(markdown,/^# Untitled QA observation/m);
   assert.doesNotMatch(markdown,/^# Fictional QA session/m);
 });
+
+test("browser-extension exceptions are classified as environment for old exports",()=>{
+  const report=basic();
+  report.events.push({
+    kind:"console-exception",at:3400,
+    url:"chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/inpage.js"
+  });
+  const result=summarize(report);
+  assert.equal(result.errors,1);
+  assert.equal(result.environment,1);
+});

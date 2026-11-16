@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-16 — Provenance-aware browser diagnostics
+
+- Confirmed from a tester screenshot that some captured exceptions referenced Chrome extension scripts rather than the test application.
+- Added CDP execution-context and script-origin hints for console messages, exceptions and network events.
+- Separated browser-extension/isolated-world diagnostics into Environment without deleting the evidence.
+- Stopped persisting raw Chrome extension IDs as URL fields in new sessions.
+- Preserved legacy classification for older session exports.
+- Added a controlled diagnostic classification unit test suite.
+- Updated the Chrome service worker to run as an ES module.
+- Real Chrome validation of this new provenance patch is still required.
+
+
 ## 2026-11-16 — Second live capture and evidence triage
 
 - User verified a 41-second recording, 6.6 MB locally stored video, 24 grouped timeline events and 83 occurrences on an authorized test session.

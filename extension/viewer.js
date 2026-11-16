@@ -12,7 +12,10 @@ $("meta").textContent = new Date(report.startedAt).toLocaleString() + " · " +
   report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s";
 // Legacy sessions may have stored warning-level entries under console-error.
 const normalizedKind = event => {
-  if (event.kind === "environment-diagnostic") return "environment-diagnostic";
+  if (event.kind === "environment-diagnostic" ||
+      ["browser-extension","browser-internal","isolated-world"].includes(event.sourceHint) ||
+      /^chrome-extension:\/\//i.test(event.url || "") ||
+      event.url === "[browser-extension]") return "environment-diagnostic";
   if (event.kind === "console-error" || event.kind === "console-warning") {
     // Include older reports: previous versions recorded extension messaging as app errors.
     if (/unchecked runtime\.lastError/i.test(event.message || "") &&

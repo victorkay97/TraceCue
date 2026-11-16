@@ -30,6 +30,9 @@ export function eventKind(event) {
   if (event.kind === "console-error" || event.kind === "console-warning" ||
       event.kind === "environment-diagnostic") {
     if (event.kind === "environment-diagnostic" ||
+        ["browser-extension","browser-internal","isolated-world"].includes(event.sourceHint) ||
+        /^chrome-extension:\/\//i.test(event.url || "") ||
+        event.url === "[browser-extension]" ||
         (/unchecked runtime\.lastError/i.test(event.message || "") &&
         /could not establish connection|receiving end does not exist|message port closed/i.test(event.message || ""))) {
       return "environment-diagnostic";
