@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-16 — Clean recording controls and individually titled QA clips
+
+- Chrome tab capture includes webpage overlays; recording now removes TraceCue's injected in-page mascot before MediaRecorder starts and suppresses reinjection until video has stopped. Capture fails closed if exclusion cannot be confirmed.
+- Recording controls remain available in the native Chrome side panel and an optional separate popup window positioned near the browser's lower-right corner. Standard Chrome windows are not guaranteed always-on-top.
+- Live sidebar now lists the title, timestamp, and lookback for each issue marker. A new mark saves a distinct issue record and clears the title input for the next one.
+- Local viewer supports per-issue title editing, issue-specific tester notes, and independently downloaded WebM, Markdown, and JSON exports containing time-scoped, minimized diagnostics.
+- Added test coverage for isolated issue windows, redaction, and noncolliding title-based clip filenames.
+- Added a second fictional QA fixture scenario (name mismatch) to exercise two issues in one uninterrupted recording.
+- **Chrome acceptance still required:** inspect actual saved video to confirm zero TraceCue overlay frames; verify sidebar/capture permissions, two saved clips and full-session continuity.
+
+
 ## 2026-11-16 — TraceCue 0.2 recording companion and deploy demo
 
 - Added Chrome side panel and standalone popup-window recording workspace, plus a custom in-page floating mascot.
