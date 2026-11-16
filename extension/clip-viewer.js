@@ -190,7 +190,47 @@ export async function setupClipViewer({
         marker.event.testerNotes=redactDiagnosticText(notesInput.value.trim(),1800);
         await saveReport(report);onMarkerUpdated();
       });
-      details.append(title,timing,state,titleLabel,titleInput,notesLabel,notesInput);
+      // Standard QA fields are per issue, never per entire session.
+      const qa=document.createElement("div");qa.className="clip-qa-fields";
+      const selectField=(key,heading,choices)=>{
+        const wrap=document.createElement("label");wrap.className="clip-field-label";
+        wrap.textContent=heading;
+        const select=document.createElement("select");select.className="clip-qa-select";
+        for(const [value,title] of choices){
+          const option=document.createElement("option");
+          option.value=value;option.textContent=title;select.append(option);
+        }
+        select.value=marker.event[key]||choices[0][0];
+        select.addEventListener("change",async()=>{
+          marker.event[key]=select.value;
+          await saveReport(report);onMarkerUpdated();
+        });
+        wrap.append(select);qa.append(wrap);
+      };
+      const textField=(key,heading,hint)=>{
+        const wrap=document.createElement("label");wrap.className="clip-field-label";
+        wrap.textContent=heading;
+        const textarea=document.createElement("textarea");
+        textarea.className="clip-qa-input";textarea.rows=2;textarea.maxLength=1500;
+        textarea.value=marker.event[key]||"";textarea.placeholder=hint;
+        textarea.addEventListener("change",async()=>{
+          marker.event[key]=redactDiagnosticText(textarea.value.trim(),1500);
+          await saveReport(report);onMarkerUpdated();
+        });
+        wrap.append(textarea);qa.append(wrap);
+      };
+      selectField("severity","Impact / severity",[
+        ["unrated","Not rated"],["blocker","Blocker"],["critical","Critical"],
+        ["major","Major"],["minor","Minor"],["trivial","Trivial"]
+      ]);
+      selectField("reproducibility","Reproducibility",[
+        ["not-retested","Not retested"],["always","Always"],
+        ["intermittent","Intermittent"],["once","Observed once"]
+      ]);
+      textField("expectedBehavior","Expected behavior","What should the application have done?");
+      textField("actualBehavior","Actual behavior","What happened instead?");
+      textField("reproductionSteps","Reproduction steps","Record any extra setup or steps not obvious in the video.");
+      details.append(title,timing,state,titleLabel,titleInput,notesLabel,notesInput,qa);
       row.append(details);
 
       const editor=document.createElement("div");editor.className="clip-trimmer";
