@@ -96,6 +96,9 @@ $("window").addEventListener("click",async()=>{
     type:"popup",width,height,...placement
   }).catch(e=>{$("message").textContent="Could not open floating controls: "+e.message;});
 });
+$("recover").addEventListener("click",async()=>{
+  await chrome.tabs.create({url:chrome.runtime.getURL("recovery.html")});
+});
 $("review").addEventListener("click",async()=>{
   const x=await chrome.storage.local.get("lastReportId");
   if(x.lastReportId)await chrome.tabs.create({url:chrome.runtime.getURL("viewer.html?id="+encodeURIComponent(x.lastReportId))});

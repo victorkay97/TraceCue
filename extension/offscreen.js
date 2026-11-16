@@ -95,7 +95,7 @@ async function finalize(id,{interrupted=false}={}){
   await dbWrite(id,blob);
   await cleanup(id,parts);
   return {...describeRecovery({chunks:parts.length,bytes:blob.size,hasFinal:false}),
-    ok:true,bytes:blob.size,interrupted};
+    partial:interrupted,ok:true,bytes:blob.size,interrupted};
 }
 async function finish(id){
   const item=active;

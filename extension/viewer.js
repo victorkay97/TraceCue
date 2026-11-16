@@ -10,6 +10,12 @@ if (!report) {
   throw new Error("Missing TraceCue report");
 }
 $("title").textContent = report.title || "Untitled QA session";
+if(report.recovered){
+  const notice=document.getElementById("recoveryNotice");
+  notice.hidden=false;
+  notice.textContent=report.recoveryNotice||
+    "Interrupted session: recording may be partial. Verify all captured evidence before sharing.";
+}
 $("meta").textContent = new Date(report.startedAt).toLocaleString() + " · " +
   report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s";
 // Legacy sessions may have stored warning-level entries under console-error.
