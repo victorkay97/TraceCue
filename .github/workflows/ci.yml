@@ -21,6 +21,7 @@ jobs:
           node --check extension/companion.js
           node --check extension/clipper.js
           node --check extension/clip-viewer.js
+          node --check extension/issue-export.js
           node --check studio/src/synchronized-video.js
           node --check studio/src/repro-audit.js
       - name: Run evidence processing tests
