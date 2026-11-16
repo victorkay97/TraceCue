@@ -8,3 +8,6 @@
 .event.event-jump:hover,.event.event-jump:focus-visible{background:#1d2d3c;outline-offset:-2px;outline-color:#a7ded8}
 .event.warn strong{color:#edc38c}.event.failure strong{color:#f1a49c}.event.environment strong{color:#92c1dc}
 .event .repeat{display:inline-block;font-size:11px;color:#d1e2e7;border:1px solid #54687b;border-radius:99px;padding:1px 6px;margin-left:7px}
+
+#issueTitle{display:block;width:100%;background:#0b1622;border:1px solid #37465a;border-radius:9px;padding:12px;color:#e5eef8;font:inherit;margin-bottom:17px}
+#issueTitle:focus{outline:2px solid #87c9c5;outline-offset:1px}
