@@ -66,3 +66,12 @@
 .video-query input[type=checkbox]{width:auto}
 .video-query button{justify-self:start}
 @media(max-width:760px){.query-grid{grid-template-columns:1fr}}
+
+/* Image annotations are rendered locally from user-selected video frames. */
+.frame-annotator{margin-top:14px;border-top:1px solid #2f4653;padding:15px 0}
+.frame-annotator .panel-head h3{font-size:15px;margin:4px 0}
+.frame-annotator .annotation-tools{display:flex;gap:10px;align-items:center;margin:12px 0}
+.frame-annotator .annotation-tools label{display:flex;gap:8px;align-items:center;font-size:12px}
+.frame-annotator select{padding:9px;color:#def3ed;background:#102732;border:1px solid #365964;border-radius:8px}
+.frame-annotator canvas{width:100%;height:auto;max-height:400px;object-fit:contain;cursor:crosshair;touch-action:none;border:1px solid #395967;border-radius:10px;background:#0a1017}
+.frame-annotator .actions{flex-wrap:wrap;margin-top:12px}

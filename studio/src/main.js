@@ -10,6 +10,7 @@ import {evaluateReproduction} from "./repro-audit.js";
 import {sanitizeForAI} from "./evidence-intelligence.js";
 import {scopedEvidence} from "./issue-scope.js";
 import {mountQaWorkspace} from "./query-workspace.js";
+import {createFrameAnnotator} from "./frame-annotator.js";
 
 let session = null;
 let analysis = null;
@@ -39,7 +40,7 @@ app.innerHTML = [
         '<div id="sessionMeta" class="meta">Import a session from the TraceCue Chrome companion to see its synchronized actions, failures, and issue markers.</div>',
         '<div class="video-inspector"><div class="video-top"><strong>Full recording · synchronized</strong><label class="video-upload">↑ Attach full WebM<input id="videoUpload" type="file" accept="video/webm,.webm" hidden></label></div>',
         '<p id="videoStatus" class="muted">Import a complete WebM to synchronize recorded events.</p><video id="fullVideo" controls playsinline hidden></video>',
-        '<div class="video-markers" id="videoMarkers"></div><p class="muted small">The video stays in this browser. Event timestamps are aligned to the actual video start.</p></div>',
+        '<div class="video-markers" id="videoMarkers"></div><p class="muted small">The video stays in this browser. Event timestamps are aligned to the actual video start.</p></div><section class="frame-annotator" id="frameAnnotator"></section>',
         '<div class="tabs"><button data-view="all" class="selected">All events</button><button data-view="errors">Failures</button><button data-view="warnings">Warnings</button><button data-view="environment">Environment</button><button data-view="markers">Issue markers</button></div>',
         '<div id="timeline" class="timeline"><div class="empty">No evidence loaded yet.</div></div></section>',
         '<section class="panel" id="intelligence"><div class="panel-head"><div><span class="eyebrow">FIREBASE AI LOGIC</span><h2>Investigation workspace</h2></div><span class="badge">Hybrid AI</span></div>',
@@ -83,6 +84,7 @@ app.innerHTML = [
 const $ = id => document.getElementById(id);
 const noHtml = (tag,cls,value) => {const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
 const videoInspector=createVideoInspector({video:$("fullVideo"),upload:$("videoUpload"),status:$("videoStatus"),markers:$("videoMarkers")});
+const annotator=createFrameAnnotator($("frameAnnotator"),{video:$("fullVideo"),getSession:()=>session});
 const qaWorkspace=mountQaWorkspace($("queryWorkspace"),{
   getSession:()=>session,hasFirebase,
   seek:event=>videoInspector.seek(event),
@@ -178,6 +180,7 @@ function applyReport(data){
     for(const id of ["reproPreconditions","reproExpected","reproActual"])$(id).value="";
     for(const id of ["reproSteps","reproRetest","reproPrivacy","reproAuthorized"])$(id).checked=false;
     videoInspector.configure(data);
+    annotator.clear();
     qaWorkspace.refresh();
     const s=summarize(data);
     $("events").textContent=s.events;
