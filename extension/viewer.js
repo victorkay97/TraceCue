@@ -237,7 +237,7 @@ $("deleteSession").addEventListener("click",async () => {
 
 
 setupClipViewer({
-  report,id,videoBlob,video:$("video"),openDb,download,seekEvent,
+  report,id,videoBlob,video:$("video"),openDb,download,seekEvent,onMarkerUpdated:renderTimeline,
   saveReport:async updated=>chrome.storage.local.set({["report:"+id]:updated})
 }).catch(error=>{
   $("clipStatus").textContent="Clip viewer unavailable: "+error.message;
