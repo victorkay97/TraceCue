@@ -7,7 +7,8 @@ const STEPS=[
  {eyebrow:"STEP 3 OF 3 · SHARE",title:"Verify before sharing.",body:"Review expected versus actual behavior and tester authorization. You decide when to export, copy, or submit an issue.",target:"intelligence",cta:"Finish guide"}
 ];
 export function initStudioOnboarding({loadDemo,openSection}){
-  const trigger=document.getElementById("showGuide");
+  const triggers=[document.getElementById("showGuide"),document.getElementById("showGuideTop")].filter(Boolean);
+  let lastTrigger=triggers[0]||null;
   const node=document.createElement("aside");node.className="tc-guide";node.hidden=true;
   node.setAttribute("role","dialog");node.setAttribute("aria-modal","false");
   node.setAttribute("aria-labelledby","tc-guide-title");
@@ -16,7 +17,7 @@ export function initStudioOnboarding({loadDemo,openSection}){
   let stage=0;
   const $=id=>node.querySelector("#"+id);
   const save=()=>{try{localStorage.setItem(KEY,"complete");}catch{}};
-  function close(){node.hidden=true;save();trigger?.focus();}
+  function close(){node.hidden=true;save();lastTrigger?.focus();}
   function draw(){
     const current=STEPS[stage];
     $("guideEyebrow").textContent=current.eyebrow;
@@ -45,7 +46,7 @@ export function initStudioOnboarding({loadDemo,openSection}){
   node.addEventListener("keydown",event=>{
     if(event.key==="Escape"){event.preventDefault();close();}
   });
-  trigger?.addEventListener("click",show);
+  triggers.forEach(trigger=>trigger.addEventListener("click",()=>{lastTrigger=trigger;show();}));
   // The demo link opens an immediate sample: don't cover it with a guide.
   const autoDemo=new URLSearchParams(location.search).has("demo");
   let completed=false;try{completed=localStorage.getItem(KEY)==="complete";}catch{}

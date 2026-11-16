@@ -3,6 +3,14 @@ let tabId=Number(new URLSearchParams(location.search).get("tab"))||null;
 let seconds=30;
 let postSeconds=5;
 const send=(action,more={})=>chrome.runtime.sendMessage({target:"tracecue-control",action,tabId,...more});
+// First launch offers concise guidance; established users can reopen it.
+chrome.storage.local.get("tracecueHasSeenGuide").then(data=>{
+  if(!data.tracecueHasSeenGuide)$("firstRunSteps").open=true;
+}).catch(()=>{});
+$("firstRunSteps").addEventListener("toggle",()=>{
+  if(!$("firstRunSteps").open)
+    chrome.storage.local.set({tracecueHasSeenGuide:true}).catch(()=>{});
+});
 async function resolveTab(){
   if(tabId){const tab=await chrome.tabs.get(tabId).catch(()=>null);if(tab)return tab;}
   const [tab]=await chrome.tabs.query({active:true,lastFocusedWindow:true});

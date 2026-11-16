@@ -15,3 +15,8 @@
 .issue-suggestions strong{display:block;font-size:12px;color:#d3ebe7}
 .suggestion-button{display:block;width:100%;text-align:left;font-size:11px;margin:6px 0;background:#223b46;color:#cce7df;border:1px solid #3d6570;padding:9px}
 .suggestion-button:hover{background:#30515c}
+
+.first-run-steps{background:#1b323a;border:1px solid #3d6163;border-radius:11px;padding:12px 14px;margin-bottom:14px}
+.first-run-steps summary{cursor:pointer;color:#cce8df;font-size:12px;font-weight:800}
+.first-run-steps ol{font-size:11px;color:#aec9ca;line-height:1.8;padding-left:19px;margin:11px 0}
+.first-run-steps p{font-size:11px;color:#97b8b5;margin-bottom:0}

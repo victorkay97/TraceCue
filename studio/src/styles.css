@@ -101,3 +101,6 @@
 .tc-transfer-notice button.ghost{background:#2b494b;color:#cee5df}
 .tc-transfer-notice button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:780px){.ai-mode-guide{grid-template-columns:1fr}.topbar-actions .topbar-home{display:none}}
+
+.topbar-guide{font:inherit;font-size:11px;color:#b5e1d7;background:#234047;border:1px solid #406363;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:750}
+.topbar-guide:hover{background:#31545a}
