@@ -67,6 +67,12 @@ function focusEvidence(id){
 function resetAnalysis(message){
   analysis=null;
   $("export").disabled=true;
+  // If a prompt is edited while a request is running, discard the stale result
+  // and allow a fresh request instead of leaving the buttons disabled.
+  if(session){
+    $("device").disabled=false;
+    $("cloud").disabled=false;
+  }
   $("structuredResult").replaceChildren();
   $("aiResult").textContent=message;
 }
