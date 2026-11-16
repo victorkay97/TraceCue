@@ -76,6 +76,8 @@ export async function setupClipViewer({
     previewMarkerId=idFor(marker);
     $("clipPreview").src=previewUrl;
     $("clipPreview").hidden=false;
+    const row=[...document.querySelectorAll(".clip-row")].find(el=>el.dataset.markerId===previewMarkerId);
+    if(row)row.append($("clipPreview"));
     $("clipPreview").scrollIntoView({behavior:"smooth",block:"nearest"});
   }
   // Clip-preview playback and its captured log rows use the same source-video clock.
@@ -156,7 +158,11 @@ export async function setupClipViewer({
   }
 
   function render(){
-    const container=$("clipList");container.replaceChildren();
+    const container=$("clipList");
+    // Keep the shared preview player alive when the selected card is rerendered.
+    const currentPreview=$("clipPreview");
+    if(currentPreview?.closest(".clip-row"))container.parentElement.append(currentPreview);
+    container.replaceChildren();
     $("clipCount").textContent=markers.length+" issue"+(markers.length===1?"":"s");
     if(!markers.length){
       const empty=document.createElement("p");empty.className="muted tiny";
@@ -165,7 +171,7 @@ export async function setupClipViewer({
     }
     for(const marker of markers){
       const key=keyFor(marker);
-      const row=document.createElement("article");row.className="clip-row";
+      const row=document.createElement("article");row.className="clip-row";row.dataset.markerId=idFor(marker);
       const details=document.createElement("div");details.className="clip-meta";
       const title=document.createElement("strong");title.textContent=label(marker);
       const range=(()=>{try{return rangeFor(marker);}catch{return null;}})();
@@ -331,6 +337,7 @@ export async function setupClipViewer({
       row.append(controls);
       if(range)addEvidencePanel(row,marker);
       container.append(row);
+      if(previewMarkerId===idFor(marker)&&!currentPreview.hidden)row.append(currentPreview);
     }
     $("retryClips").hidden=!videoBlob||markers.every(x=>saved.has(keyFor(x)));
   }
