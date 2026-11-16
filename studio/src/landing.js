@@ -64,7 +64,7 @@ root.innerHTML=`
     <section class="site-final"><p class="overline">TRACE THE MOMENT. KEEP THE CONTEXT.</p><h2>Less guesswork.<br><em>More confidence.</em></h2><a class="btn primary" href="/app.html?demo=1">Open the interactive demo ↗</a></section>
   </main>
   <footer class="site-footer"><div><a class="site-logo footer-logo" href="/"><span class="site-brand-icon">T<span>·</span></span><span>TraceCue</span></a><p>Evidence-first QA, built for the people behind quality software.</p></div><div class="footer-links"><a href="/app.html">Studio</a><a href="/privacy.html">Privacy</a><a href="https://github.com/victorkay97/TraceCue" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/victorkay97/TraceCue/blob/feat/tracecue-foundation/docs/INSTALL.md" target="_blank" rel="noopener noreferrer">Install guide</a></div><span>© 2026 TraceCue · Developer preview</span></footer>
-</div>\`;
+</div>`;
 const previews=[
  {label:"01 / RECORD",symbol:"●",title:"Capture the whole story.",description:"A continuous, permissioned recording keeps the context across multiple issues.",time:"04:21",fill:"34%"},
  {label:"02 / MARK",symbol:"⚑",title:"Name the moment it went wrong.",description:"Give each incident a title and select the context before and after it.",time:"00:30",fill:"64%"},
