@@ -1,6 +1,6 @@
 import "./landing.css";
 const root=document.getElementById("landing");
-root.innerHTML=String.raw\`
+root.innerHTML=`
 <div class="landing-page">
   <div class="announcement"><span class="announcement-dot"></span>TraceCue 0.5 developer preview <span class="ann-sep">·</span> No account required to try the demo</div>
   <nav class="site-nav" aria-label="Primary navigation">
