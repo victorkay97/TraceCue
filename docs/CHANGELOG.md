@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-16 — Live cloud inference verified and investigation quality pass
+
+- User verified a real Firebase AI Logic `in_cloud` response displayed inside TraceCue Studio.
+- Evidence-linked tentative reproduction steps, missing-information findings and regression suggestions rendered successfully.
+- Derived technical signals separately from structured session metadata; model output is no longer treated as their source.
+- Missing model "observed" fields remain clearly marked as missing rather than filled with invented text.
+- AI confidence now reads as a self-assessment, not a reliability metric; evidence completeness flags uncited steps and unanswered questions.
+- Added regression tests for these data-quality rules.
+- On-device inference is the next live verification target.
+
+
 ## 2026-11-16 — First Firebase cloud response: inference source fix
 
 - A live Firebase cloud analysis returned SDK `in_cloud`, but TraceCue erroneously compared it against uppercase `IN_CLOUD` and discarded the response.
