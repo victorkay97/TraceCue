@@ -13,7 +13,7 @@ const basic = () => ({
 });
 test("valid session is summarized",()=>{
   const report=validateReport(basic());
-  assert.deepEqual(summarize(report),{events:2,errors:1,interactions:1,markers:0,duration:4});
+  assert.deepEqual(summarize(report),{events:2,errors:1,warnings:0,interactions:1,markers:0,duration:4});
 });
 test("rejects unsupported schema, invalid dates, unexpected events",()=>{
   assert.throws(()=>validateReport({schema:"nope",events:[]}));
@@ -41,4 +41,29 @@ test("issue export includes disclosure and does not claim reproduction",()=>{
   const text=exportIssue(basic(),"Expected save, actual failure",null);
   assert.match(text,/No AI analysis performed/);
   assert.match(text,/Verify suggested steps manually/);
+});
+
+test("warning-level legacy console logs are not counted as errors",()=>{
+  const report=basic();
+  report.events.push({
+    kind:"console-error",level:"warning",at:3400,
+    message:"MaxListenersExceededWarning",occurrences:11
+  });
+  const summary=summarize(report);
+  assert.equal(summary.errors,1);
+  assert.equal(summary.warnings,11);
+  assert.equal(summary.events,13);
+  const prompt=buildPrompt(report,"Investigate the network response");
+  assert.match(prompt,/"type":"console-warning"/);
+  assert.match(prompt,/"occurrences":11/);
+  assert.equal(prompt.includes("secret.example"),false);
+});
+test("new console-warning entries stay distinct from exceptions",()=>{
+  const report=basic();
+  report.events.push({kind:"console-warning",level:"warn",at:3400,message:"Listener warning"});
+  report.events.push({kind:"console-exception",at:3700,message:"Uncaught TypeError"});
+  const summary=summarize(report);
+  assert.equal(summary.errors,2);
+  assert.equal(summary.warnings,1);
+  assert.equal(summary.events,4);
 });
