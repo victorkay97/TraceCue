@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-16 — Evidence-linked Firebase Intelligence
+
+- Added stable evidence reference IDs, purpose-limited AI prompts, an explicit environment-log inclusion setting and clickable evidence links.
+- Parsed and validated structured AI investigations without inventing absent references or treating suggested tests as executed.
+- Added a raw AI response viewer alongside reviewer-friendly sections.
+- Enforced strict Firebase ON_DEVICE and IN_CLOUD response-source checks.
+- Added localhost-only Firebase App Check debug-provider setup and documented the required user-side Firebase configuration.
+- Automated checks test evidence processing and Studio builds; live Firebase inference remains unverified.
+
+
 ## 2026-11-16 — Real fixture evidence provenance correction
 
 - Uploaded report proved all three fixture actions ran, including four warnings grouped into one event.

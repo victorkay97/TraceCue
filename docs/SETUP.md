@@ -59,3 +59,24 @@ npm run build
 ~~~
 
 A working Firebase project is not included. Until actual keys and App Check are configured, AI buttons show a transparent error rather than fake output.
+
+
+## TraceCue Intelligence — first live Firebase test
+
+1. In Firebase Console, create a Firebase project and register a **Web app** for TraceCue Studio.
+2. Go to **AI Services → AI Logic**, choose the Gemini Developer API, and complete its guided setup.
+3. Confirm **Security → App Check → APIs → Firebase AI Logic** is **Enforced**.
+4. Copy the public Firebase web configuration fields into studio/.env.local (copy studio/.env.example to create it).
+5. For local development, Studio activates the App Check debug provider only on localhost in a Vite development build. Check Chrome's DevTools Console for the App Check debug token, then register the token privately in Firebase Console → App Check → Apps → Manage debug tokens. Never commit the token or add localhost to reCAPTCHA's production allowed domains.
+6. Reload Studio. Import the redacted JSON from TraceCue Companion.
+7. In the Intelligence panel, the evidence catalogue assigns stable EV identifiers to action/failure events; browser-extension environment noise is excluded by default.
+8. Review the generated minimized prompt. Click **Analyze on device** and verify that Studio displays SDK source **ON_DEVICE**. No cloud fallback occurs.
+9. To run the cloud model, review the exact editable prompt, grant explicit consent, then click **Analyze in cloud** and verify SDK source **IN_CLOUD**. The consent checkbox resets after a successful run.
+10. A valid structured result can propose reproduction steps citing EV event IDs; the UI only links IDs present in the imported report. Raw model text remains accessible for transparency. The regression suggestions are not executed tests.
+
+On-device inference needs supported desktop Chrome (139+) with the Prompt API enabled, sufficient free disk space, and a local model download. Chrome v157 alone does not guarantee on-device model availability. The SDK supports text and JPEG/PNG images, not video input, so TraceCue sends a minimized text event catalogue rather than the recording itself.
+
+For an initial check, use the synthetic file at studio/samples/example-session.json. You may also import your own TraceCue export, but do not share recordings containing private data.
+
+Official Firebase hybrid guide: https://firebase.google.com/docs/ai-logic/hybrid/web/get-started
+Official inference configuration: https://firebase.google.com/docs/ai-logic/hybrid/web/configuration-options

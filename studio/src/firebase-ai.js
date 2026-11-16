@@ -15,6 +15,11 @@ function initializeService() {
   if (!config.apiKey || !config.projectId || !config.appId || !vars.VITE_APPCHECK_SITE_KEY)
     throw new Error("Configure Firebase AI Logic and App Check in studio/.env.local.");
   const app = getApps()[0] || initializeApp(config);
+  // Local development: enable App Check's debug provider only in an actual dev
+  // build served on localhost. The emitted token must be registered privately.
+  if (import.meta.env.DEV && ["localhost","127.0.0.1"].includes(location.hostname)) {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
   initializeAppCheck(app,{
     provider:new ReCaptchaV3Provider(vars.VITE_APPCHECK_SITE_KEY),
     isTokenAutoRefreshEnabled:true
@@ -35,10 +40,16 @@ export async function investigate(prompt,mode,progress) {
   if (mode === "device") {
     progress?.("Preparing Chrome local model. First-time download may be substantial.");
     // Invoked synchronously from the user's click before calling generateContent.
+    if (typeof model.initializeDeviceModel !== "function")
+      throw new Error("On-device model initializer unavailable; update Chrome and Firebase SDK.");
     await model.initializeDeviceModel(p => progress?.("Local model preparation: " + Math.round(p*100) + "%"));
   }
   const result = await model.generateContent(prompt);
   const source = result.response.inferenceSource;
   if (!source) throw new Error("SDK returned no inference-source information.");
+  if (mode === "device" && source !== "ON_DEVICE")
+    throw new Error("Privacy protection: requested local inference but SDK reported " + source);
+  if (mode === "cloud" && source !== "IN_CLOUD")
+    throw new Error("Expected cloud inference but SDK reported " + source);
   return {text:result.response.text(),source,mode,at:new Date().toISOString()};
 }
