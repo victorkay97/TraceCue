@@ -39,11 +39,11 @@ test("issue exports exclude tokens in captured messages",()=>{
 });
 
 test("post-marker buffer includes later console signals in the same isolated issue",()=>{
- const marked={...report.events[2],postBufferSeconds:15,expectedBehavior:"Name should match",
+ const marked={...report.events[2],postBufferSeconds:10,expectedBehavior:"Name should match",
    actualBehavior:"Name differs",severity:"major",reproducibility:"intermittent"};
  const data=issueJson(report,marked);
- assert.equal(data.clip.postBufferSeconds,15);
- assert.equal(data.clip.endSecond,24);
+ assert.equal(data.clip.postBufferSeconds,10);
+ assert.equal(data.clip.endSecond,19);
  assert.equal(data.expectedBehavior,"Name should match");
  assert.equal(data.severity,"major");
  assert.equal(data.reproducibility,"intermittent");
