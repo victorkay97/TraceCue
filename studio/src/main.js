@@ -5,6 +5,7 @@ import {prepareInvestigation,parseInvestigation,structuredToMarkdown} from "./ev
 import {renderEvidenceCatalog,renderInvestigation} from "./intelligence-view.js";
 import { generatePlaywrightDraft } from "./playwright-draft.js";
 import {buildGitHubIssueDraft,githubIssueUrl} from "./github-handoff.js";
+import {createVideoInspector} from "./synchronized-video.js";
 
 let session = null;
 let analysis = null;
@@ -30,6 +31,9 @@ app.innerHTML = [
       '<div class="two">',
         '<section class="panel" id="evidence"><div class="panel-head"><div><span class="eyebrow">CAPTURED SESSION</span><h2>Evidence timeline</h2></div><span class="badge" id="sessionBadge">No session imported</span></div>',
         '<div id="sessionMeta" class="meta">Import a session from the TraceCue Chrome companion to see its synchronized actions, failures, and issue markers.</div>',
+        '<div class="video-inspector"><div class="video-top"><strong>Full recording · synchronized</strong><label class="video-upload">↑ Attach full WebM<input id="videoUpload" type="file" accept="video/webm,.webm" hidden></label></div>',
+        '<p id="videoStatus" class="muted">Import a complete WebM to synchronize recorded events.</p><video id="fullVideo" controls playsinline hidden></video>',
+        '<div class="video-markers" id="videoMarkers"></div><p class="muted small">The video stays in this browser. Event timestamps are aligned to the actual video start.</p></div>',
         '<div class="tabs"><button data-view="all" class="selected">All events</button><button data-view="errors">Failures</button><button data-view="warnings">Warnings</button><button data-view="environment">Environment</button><button data-view="markers">Issue markers</button></div>',
         '<div id="timeline" class="timeline"><div class="empty">No evidence loaded yet.</div></div></section>',
         '<section class="panel" id="intelligence"><div class="panel-head"><div><span class="eyebrow">FIREBASE AI LOGIC</span><h2>Investigation workspace</h2></div><span class="badge">Hybrid AI</span></div>',
@@ -63,9 +67,12 @@ app.innerHTML = [
 ].join("");
 const $ = id => document.getElementById(id);
 const noHtml = (tag,cls,value) => {const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
+const videoInspector=createVideoInspector({video:$("fullVideo"),upload:$("videoUpload"),status:$("videoStatus"),markers:$("videoMarkers")});
 
 function evidenceRef(index){return "EV"+String(index+1).padStart(4,"0");}
 function focusEvidence(id){
+  const idx=Number(id.replace(/^EV/,""))-1;
+  if(session?.events[idx])videoInspector.seek(session.events[idx]);
   view="all";
   document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("selected",b.dataset.view==="all"));
   renderTimeline();
@@ -115,6 +122,13 @@ function renderTimeline() {
     const kind = eventKind(e);
     const row = noHtml("div","event" + (["network-failure","console-error","console-exception"].includes(kind) ? " bad" : ""),"");
     row.id="event-"+evidenceRef(index);
+    row.title="Click to seek the full video to this event";
+    row.tabIndex=0;
+    row.setAttribute("role","button");
+    row.addEventListener("click",()=>videoInspector.seek(e));
+    row.addEventListener("keydown",event=>{
+      if(event.key==="Enter"||event.key===" "){event.preventDefault();videoInspector.seek(e);}
+    });
     row.append(noHtml("time","time","+" + ((e.at-session.startedAt)/1000).toFixed(1) + "s"));
     const box=document.createElement("div");
     box.append(noHtml("strong","",kind + (e.occurrences > 1 ? " ×" + e.occurrences : "")));
@@ -142,6 +156,7 @@ $("file").addEventListener("change",async event => {
     if (file.size > 5_000_000) throw new Error("Maximum supported JSON size is 5MB.");
     const data = validateReport(JSON.parse(await file.text()));
     session=data;analysis=null;
+    videoInspector.configure(data);
     const s=summarize(data);
     $("events").textContent=s.events;
     $("errors").textContent=s.errors;
