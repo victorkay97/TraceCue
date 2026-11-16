@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-16 — Both hybrid inference modes verified in Chrome
+
+- Tester verified Firebase AI Logic `on_device` in TraceCue Studio using Chrome's downloaded local language model.
+- Earlier `in_cloud` verification and the new `on_device` result establish both explicitly selected inference paths on the development machine.
+- Local model generated an issue summary and captured technical observations; its proposed reproduction steps lacked direct EV citations and were correctly flagged as incomplete.
+- Both inference modes still operate on a fictional sample QA session, not a verified production application defect.
+- Added optional GitHub Issues draft handoff: reviewable, minimized text is copied locally on explicit action. Opening a destination GitHub issue form does not prefill or transmit any report content.
+- Added validation tests for repository URL restrictions and evidence-only issue draft content. OAuth publishing is not implemented.
+
+
 ## 2026-11-16 — Live cloud inference verified and investigation quality pass
 
 - User verified a real Firebase AI Logic `in_cloud` response displayed inside TraceCue Studio.
