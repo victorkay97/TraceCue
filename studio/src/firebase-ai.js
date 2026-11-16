@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from "firebase/app";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAI, getGenerativeModel, GoogleAIBackend, InferenceMode } from "firebase/ai";
+import { assertInferenceSource } from "./inference-source.js";
 
 let service = null;
 function initializeService() {
@@ -47,9 +48,6 @@ export async function investigate(prompt,mode,progress) {
   const result = await model.generateContent(prompt);
   const source = result.response.inferenceSource;
   if (!source) throw new Error("SDK returned no inference-source information.");
-  if (mode === "device" && source !== "ON_DEVICE")
-    throw new Error("Privacy protection: requested local inference but SDK reported " + source);
-  if (mode === "cloud" && source !== "IN_CLOUD")
-    throw new Error("Expected cloud inference but SDK reported " + source);
+  assertInferenceSource(mode,source);
   return {text:result.response.text(),source,mode,at:new Date().toISOString()};
 }
