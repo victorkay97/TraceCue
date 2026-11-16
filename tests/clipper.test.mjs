@@ -20,3 +20,11 @@ test("independent clip names cannot contain file traversal",()=>{
  assert.equal(clipKey("tc-1","m-42"),"clip:tc-1:m-42");
  assert.equal(clipFileName("tc-1","../../m-42"),"clip-tc-1-m-42.webm");
 });
+
+test("clip filenames preserve distinct issue titles and immutable marker IDs",()=>{
+ const one=clipFileName("tc-1","m1","Name mismatch");
+ const two=clipFileName("tc-1","m2","Name mismatch");
+ assert.match(one,/name-mismatch\.webm$/);
+ assert.notEqual(one,two);
+ assert.equal(clipFileName("tc-1","m3","../?secret\\unsafe"),"clip-tc-1-m3-secret-unsafe.webm");
+});
