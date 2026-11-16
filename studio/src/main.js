@@ -14,6 +14,7 @@ let analysis = null;
 let view = "all";
 let evidence = [];
 let activeRequest = 0;
+const hasFirebase=Boolean(import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_PROJECT_ID && import.meta.env.VITE_FIREBASE_APP_ID && import.meta.env.VITE_APPCHECK_SITE_KEY);
 const app = document.getElementById("app");
 app.innerHTML = [
   '<div class="shell">',
@@ -103,8 +104,8 @@ function resetAnalysis(message){
   // If a prompt is edited while a request is running, discard the stale result
   // and allow a fresh request instead of leaving the buttons disabled.
   if(session){
-    $("device").disabled=false;
-    $("cloud").disabled=false;
+    $("device").disabled=!hasFirebase;
+    $("cloud").disabled=!hasFirebase;
   }
   $("structuredResult").replaceChildren();
   $("aiResult").textContent=message;
@@ -177,8 +178,8 @@ function applyReport(data){
     $("sessionMeta").textContent=(data.title || data.id) + " · " + new Date(data.startedAt).toLocaleString() +
       " · " + (data.url || "Unknown origin");
     $("notes").value=(data.testerNotes || "").slice(0,2500);
-    $("device").disabled=false;$("cloud").disabled=false;$("playwright").disabled=false;
-    $("aiStatus").textContent="Evidence imported locally. AI has not been invoked.";
+    $("device").disabled=!hasFirebase;$("cloud").disabled=!hasFirebase;$("playwright").disabled=false;
+    $("aiStatus").textContent=hasFirebase?"Evidence imported locally. AI has not been invoked.":"Local evidence preview ready. Firebase AI requires an authorized domain and production configuration.";
     renderTimeline();syncPrompt();
 }
 $("loadDemo").addEventListener("click",async()=>{
@@ -187,7 +188,7 @@ $("loadDemo").addEventListener("click",async()=>{
     if(!response.ok)throw new Error("Fictional demo file unavailable");
     const report=validateReport(await response.json());
     applyReport(report);
-    $("aiStatus").textContent="Synthetic demo loaded. These are not verified real-world failures.";
+    $("aiStatus").textContent=hasFirebase?"Synthetic demo loaded; not a real-world defect.":"Synthetic demo loaded; not a real-world defect. Firebase AI disabled until production configuration is added.";
   }catch(error){$("aiStatus").textContent="Demo load failed: "+error.message;}
 });
 $("file").addEventListener("change",async event => {
@@ -203,6 +204,7 @@ $("file").addEventListener("change",async event => {
 });
 async function analyze(mode) {
   if(!session)return;
+  if(!hasFirebase){$("aiStatus").textContent="Firebase AI is not configured for this deployed preview.";return;}
   if(mode==="cloud"&&!$("consent").checked){
     $("aiStatus").textContent="Review and explicitly authorize the text sent to cloud AI.";return;
   }
