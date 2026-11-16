@@ -110,11 +110,19 @@ export async function setupClipViewer({
       const option=document.createElement("option");option.value=value;
       option.textContent=text;select.append(option);
     }
-    filters.append(select);details.append(filters);
+    const search=document.createElement("input");
+    search.type="search";search.className="clip-evidence-search";
+    search.placeholder="Search logs, statuses and actions…";
+    search.setAttribute("aria-label","Search captured issue logs");
+    filters.append(select,search);details.append(filters);
     const list=document.createElement("div");list.className="clip-evidence-list";details.append(list);
     const draw=()=>{
       list.replaceChildren();
-      const visible=items.filter(item=>select.value==="all"||evidenceCategory(item.kind)===select.value);
+      const query=search.value.trim().toLowerCase();
+      const visible=items.filter(item=>
+        (select.value==="all"||evidenceCategory(item.kind)===select.value) &&
+        (!query||eventCaption(item).toLowerCase().includes(query))
+      );
       if(!visible.length){
         const p=document.createElement("p");p.className="muted tiny";p.textContent="No captured events for this filter and time window.";
         list.append(p);
@@ -135,6 +143,7 @@ export async function setupClipViewer({
       }
     };
     select.addEventListener("change",draw);
+    search.addEventListener("input",draw);
     details.addEventListener("toggle",()=>{
       if(details.open&&list.childElementCount===0)draw();
     });
