@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAI, getGenerativeModel, GoogleAIBackend, InferenceMode } from "firebase/ai";
 
 let service = null;
@@ -21,7 +21,7 @@ function initializeService() {
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
   initializeAppCheck(app,{
-    provider:new ReCaptchaV3Provider(vars.VITE_APPCHECK_SITE_KEY),
+    provider:new ReCaptchaEnterpriseProvider(vars.VITE_APPCHECK_SITE_KEY),
     isTokenAutoRefreshEnabled:true
   });
   service = getAI(app,{backend:new GoogleAIBackend()});
