@@ -34,3 +34,7 @@ export function recurrenceHints(current,history,max=5){
   }
   return results.sort((a,b)=>b.matches-a.matches).slice(0,max);
 }
+
+export function localEvidenceKeys(data){
+  return Object.keys(data||{}).filter(key=>key==="lastReportId"||key.startsWith("report:")||key.startsWith("draft:"));
+}

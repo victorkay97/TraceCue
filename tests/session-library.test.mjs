@@ -17,3 +17,12 @@ test("conservative recurrence hints do not claim verified duplicates",()=>{
  assert.equal(hints.length,1);assert.equal(hints[0].sessionId,"b");
  assert.equal(issueFingerprint({kind:"click"}),null);
 });
+
+test("privacy cleanup selects only local evidence, not unrelated extension settings",async()=>{
+ const {localEvidenceKeys}=await import("../extension/session-library.js");
+ const keys=localEvidenceKeys({
+   "report:tc-123":{}, "draft:tc-345":{},lastReportId:"tc-123",
+   userTheme:"dark",otherPluginPref:3
+ });
+ assert.deepEqual(keys.sort(),["draft:tc-345","lastReportId","report:tc-123"]);
+});

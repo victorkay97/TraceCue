@@ -1,4 +1,4 @@
-import {searchSessions,sessionIssueTitles,recurrenceHints} from "./session-library.js";
+import {searchSessions,sessionIssueTitles,recurrenceHints,localEvidenceKeys} from "./session-library.js";
 const $=id=>document.getElementById(id);
 let reports=[];
 async function load(){
@@ -46,3 +46,37 @@ function draw(){
 $("searchSessions").addEventListener("input",draw);
 $("refresh").addEventListener("click",()=>load().catch(e=>{$("libraryStatus").textContent=e.message;}));
 load().catch(e=>{$("libraryStatus").textContent="Library unavailable: "+e.message;});
+
+$("clearAllLocal").addEventListener("click",async()=>{
+  const btn=$("clearAllLocal"),status=$("privacyStatus");
+  const state=await chrome.runtime.sendMessage({target:"tracecue-control",action:"status"}).catch(()=>null);
+  if(state?.recording){status.textContent="Stop your active recording before deleting local evidence.";return;}
+  if(!confirm("Delete ALL local TraceCue reports, drafts, recordings and clips? This cannot be undone."))return;
+  if(!confirm("Final confirmation: permanently erase local TraceCue evidence from this Chrome profile?"))return;
+  btn.disabled=true;status.textContent="Deleting local browser evidence…";
+  try{
+    const db=await new Promise((resolve,reject)=>{
+      const request=indexedDB.open("tracecue-videos",1);
+      request.onupgradeneeded=()=>{
+        if(!request.result.objectStoreNames.contains("recordings"))
+          request.result.createObjectStore("recordings");
+      };
+      request.onsuccess=()=>resolve(request.result);
+      request.onerror=()=>reject(request.error);
+    });
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction("recordings","readwrite");
+        tx.objectStore("recordings").clear();
+        tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+      });
+    }finally{db.close();}
+    const all=await chrome.storage.local.get(null);
+    const keys=localEvidenceKeys(all);
+    if(keys.length)await chrome.storage.local.remove(keys);
+    status.textContent="Local reports and video/clip storage cleared. Previously exported copies were not affected.";
+    $("searchSessions").value="";
+    await load();
+  }catch(error){status.textContent="Could not complete deletion: "+error.message+". Inspect remaining data and retry.";}
+  finally{btn.disabled=false;}
+});
