@@ -48,14 +48,27 @@ Last reviewed: November 16, 2026. This document identifies current development s
 | Review | Linked console/network/action logs | Built; unit-tested | Confirm actual Chrome events |
 | Review | Search/filter + full log export | Built | Long session evidence scoping |
 | Review | Severity/repro/expected/actual | Built | Edit and export one issue |
-| Investigation | Firebase cloud and on-device | Both independently verified locally in Chrome | Keep regression coverage |
-| Investigation | Per-issue AI analysis | Not yet implemented | Scope AI to selected marker interval |
+| Investigation | Firebase cloud and on-device | Text modes previously verified locally, video cloud questions implemented but not live verified | Test video App Check and cloud-only model |
+| Investigation | Per-issue AI analysis | Built: selected marker scopes prompt, original EV IDs preserved | Verify real model citations remain within selected issue |
 | Investigation | Evidence completeness | Built | Missing/uncited step warnings |
 | Handoff | Per-issue MD/JSON and copy | Built | Browser clipboard and files |
 | Handoff | Manual GitHub Issues | Built; GitHub API test separate | Human submission from Studio |
 | Handoff | OAuth publishing to GitHub/Jira/Linear | Not implemented | Explicit auth and redaction |
 | Deploy | Static fictional Studio demo | Vercel READY | Production Firebase domain/env |
-| Reliability | Incremental crash-resistant video storage | Not implemented | Long/aborted session recovery |
+| Reliability | Incremental crash-resistant video storage | Built: local chunk journal and explicit partial recovery, Chrome pending | Force-close and inspect recovered video |
+
+## TraceCue 0.4 implementation update (November 16, 2026)
+
+Built in the development branch, subject to real Chrome acceptance unless otherwise indicated:
+
+- Deterministic evidence search such as **"Where did HTTP 500 occur?"**, returning EV IDs, captured times and a seekable video moment. Nearby actions are chronological correlations, **not proven causes**.
+- Issue-scoped Firebase AI prompts excluding unrelated issue windows with preserved EV IDs.
+- Cloud-only Gemini video questions for an **explicitly selected, reviewed ≤12 MB WebM/MP4** under separate upload consent.
+- Local video-frame screenshot annotation (arrows, rectangles, opaque masks, undo and PNG export).
+- Durable MediaRecorder chunk journaling and locally checkpointed event reports with an **interrupted-session recovery** page. Partial playback is unverified.
+- Searchable local history, possible recurrence fingerprints, opt-in verbose console data, and tester-controlled error-marker suggestions.
+
+Still required: Chrome acceptance of media capture and recovery, privacy/audit hardening for annotations, live App Check production-domain video AI verification, OAuth-based integrations, team permissions, large-session quotas, multi-browser support, actual Playwright execution, and portable signed evidence bundles.
 
 ## Priority P0 — make today's recording workflow dependable
 
