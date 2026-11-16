@@ -59,7 +59,7 @@ async function observe(tabId) {
   try { await chrome.scripting.executeScript({target:{tabId},files:["content.js"]}); }
   catch (e) { record("warning",{message:"Page observer unavailable: " + scrub(e.message)}); }
 }
-async function start(tab) {
+async function start(tab, suppliedStreamId=null) {
   if (session) return;
   if (!tab?.id || !/^https?:\/\//.test(tab.url || "")) {
     console.warn("TraceCue supports user-authorized HTTP(S) tabs only.");
@@ -75,13 +75,16 @@ async function start(tab) {
   // The action click supplies the user gesture for tabCapture.
   try {
     await offscreenReady();
-    const streamId = await chrome.tabCapture.getMediaStreamId({targetTabId:tab.id});
+    const streamId = suppliedStreamId || await chrome.tabCapture.getMediaStreamId({targetTabId:tab.id});
     const reply = await chrome.runtime.sendMessage({target:"offscreen",action:"start-video",streamId,id:session.id});
     if (!reply?.ok) throw new Error(reply?.error || "Video recording could not start");
     session.video = true;
     session.videoStartedAt = reply.startedAt || null;
   } catch (e) {
-    record("warning",{message:"Video unavailable: " + scrub(e.message)});
+    const reason=scrub(e.message);
+    session=null;
+    await chrome.storage.session.remove("tracecueActive");
+    return {ok:false,error:"Recording could not start: "+reason};
   }
   try {
     await chrome.debugger.attach({tabId:tab.id},"1.3");
@@ -96,7 +99,8 @@ async function start(tab) {
   await persist();
   await chrome.action.setBadgeBackgroundColor({tabId:tab.id,color:"#D94841"});
   await chrome.action.setBadgeText({tabId:tab.id,text:"REC"});
-  await chrome.action.setTitle({tabId:tab.id,title:"TraceCue recording — click to stop"});
+  await chrome.action.setTitle({tabId:tab.id,title:"TraceCue is recording"});
+  return {ok:true,sessionId:session.id};
 }
 async function stop() {
   if (!session) return;
@@ -125,16 +129,22 @@ async function stop() {
   await chrome.storage.session.remove("tracecueActive");
   try { await chrome.action.setBadgeText({tabId:current.tabId,text:""}); } catch {}
   await chrome.tabs.create({url:chrome.runtime.getURL("viewer.html?id=" + encodeURIComponent(report.id))});
+  return {ok:true,reportId:report.id,videoStored};
 }
+// An explicit toolbar gesture opens the companion. Nothing records until Start.
 chrome.action.onClicked.addListener(async tab => {
-  await ready;
-  try { if (session) await stop(); else await start(tab); }
-  catch (e) { console.error("TraceCue recording failed",e); }
+  if(!tab?.id || !/^https?:\/\//.test(tab.url||""))return;
+  try{
+    await chrome.sidePanel.setOptions({tabId:tab.id,path:"sidepanel.html",enabled:true});
+    await chrome.sidePanel.open({tabId:tab.id});
+    await observe(tab.id);
+    await chrome.scripting.executeScript({target:{tabId:tab.id},files:["companion.js"]});
+  }catch(e){console.error("TraceCue companion failed",e);}
 });
 chrome.commands.onCommand.addListener(async command => {
   await ready;
   if (command === "mark-issue" && session) {
-    record("issue-marker",{message:"Tester marked a possible defect"});
+    record("issue-marker",{markerId:"m-"+Date.now()+"-"+session.events.length,title:"Issue marker",lookbackSeconds:30});
     await persist().catch(() => {});
   }
 });
@@ -148,6 +158,39 @@ chrome.runtime.onMessage.addListener((message,sender,sendResponse) => {
   }
   // Acknowledge messages from current scripts; no dangling response promise.
   sendResponse({ok:true});
+});
+// Companion and sidebar commands; sender tab checked against active capture.
+chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
+  if(msg?.target!=="tracecue-control")return;
+  (async()=>{
+    await ready;
+    const tid=sender.tab?.id || Number(msg.tabId);
+    const tab=Number.isSafeInteger(tid)?await chrome.tabs.get(tid).catch(()=>null):null;
+    if(msg.action==="status")return {
+      ok:true,recording:!!session,activeOnTab:session?.tabId===tab?.id,
+      startedAt:session?.startedAt??null,tabId:session?.tabId??null
+    };
+    if(msg.action==="start"){
+      if(!tab || !/^https?:\/\//.test(tab.url||""))return {ok:false,error:"Choose an authorized website tab"};
+      if(session)return {ok:false,error:"Another recording is already active"};
+      return start(tab,typeof msg.streamId==="string"?msg.streamId:null);
+    }
+    if(msg.action==="stop"){
+      if(!session || session.tabId!==tab?.id)return {ok:false,error:"No active recording for this tab"};
+      return stop();
+    }
+    if(msg.action==="mark"){
+      if(!session || session.tabId!==tab?.id)return {ok:false,error:"Start recording first"};
+      const lookbackSeconds=Math.max(5,Math.min(120,Math.round(Number(msg.lookbackSeconds)||30)));
+      const title=scrub(msg.title||"Issue marker",100);
+      const markerId="m-"+Date.now()+"-"+session.events.length;
+      record("issue-marker",{markerId,title,lookbackSeconds});
+      await persist();
+      return {ok:true,markerId};
+    }
+    return {ok:false,error:"Unknown command"};
+  })().then(respond,error=>respond({ok:false,error:String(error?.message||error)}));
+  return true;
 });
 chrome.tabs.onUpdated.addListener(async (tabId,change,tab) => {
   await ready;
@@ -164,7 +207,10 @@ chrome.tabs.onUpdated.addListener(async (tabId,change,tab) => {
       return;
     }
   }
-  if (change.status === "complete" && /^https?:\/\//.test(tab.url || "")) await observe(tabId);
+  if (change.status === "complete" && /^https?:\/\//.test(tab.url || "")) {
+    await observe(tabId);
+    await chrome.scripting.executeScript({target:{tabId},files:["companion.js"]}).catch(()=>{});
+  }
 });
 chrome.tabs.onRemoved.addListener(async tabId => { await ready; if (session?.tabId === tabId) await stop(); });
 chrome.debugger.onDetach.addListener(async (source,reason) => {
