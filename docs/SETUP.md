@@ -40,8 +40,8 @@ Import the extension JSON, or use **studio/samples/example-session.json** to ins
 1. Create a Firebase project and Web app via https://console.firebase.google.com.
 2. Enable **AI Services → AI Logic** with the Gemini Developer API provider.
 3. In **Security → App Check**, register your web app and enforce App Check for AI Logic.
-4. In production, configure reCAPTCHA v3 or another supported production attestation provider, with the correct authorized domain.
-5. Set only public web config fields and the reCAPTCHA **public site key** in studio/.env.local. Never commit service-account credentials.
+4. In production, configure Google Cloud Fraud Defense (reCAPTCHA Enterprise) with a score-based website key and the correct authorized production domain. Classic reCAPTCHA v3 is deprecated.
+5. Set only public web config fields and the Fraud Defense **website key ID** in `VITE_APPCHECK_SITE_KEY` in studio/.env.local. Do not use a classic reCAPTCHA v3 secret key. Never commit service-account credentials.
 6. Local development requires the official App Check debug-provider flow. Use a privately registered debug token; do not commit it, hardcode it in the project, or ship it in production. Do not loosen production reCAPTCHA domains to allow untrusted localhost origins.
 7. Use Chrome Desktop version 139+, enable chrome://flags/#prompt-api-for-gemini-nano-multimodal-input if required, restart, and prepare the local model.
 8. In Studio, import a session and click **Analyze on device**. A successful response must explicitly say ON_DEVICE.
@@ -80,3 +80,8 @@ For an initial check, use the synthetic file at studio/samples/example-session.j
 
 Official Firebase hybrid guide: https://firebase.google.com/docs/ai-logic/hybrid/web/get-started
 Official inference configuration: https://firebase.google.com/docs/ai-logic/hybrid/web/configuration-options
+
+
+## App Check provider update (November 2026)
+
+Firebase now warns that classic reCAPTCHA is deprecated. TraceCue Studio uses `ReCaptchaEnterpriseProvider` from `firebase/app-check` rather than `ReCaptchaV3Provider`. In Firebase Console → App Check → Apps → TraceCue Studio, choose **Fraud Defense (formerly reCAPTCHA Enterprise)**. Create a **score-based Web key** in the same project's [Google Cloud Fraud Defense console](https://console.cloud.google.com/security/recaptcha) for the actual deployment domain. Register the **key ID/site key** in Firebase App Check (do NOT paste the classic reCAPTCHA secret there). In `studio/.env.local`, set `VITE_APPCHECK_SITE_KEY` to the same Fraud Defense key ID. Local development uses the App Check debug provider as described above; keep production domain verification enabled. The older classic reCAPTCHA keys can be retired separately.
