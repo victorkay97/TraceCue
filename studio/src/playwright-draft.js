@@ -2,7 +2,7 @@
 // Captured element categories lack stable selectors and test data; an engineer must review.
 function safe(value,max=110) {
   return String(value ?? "").replace(/[\r\n\u2028\u2029]/g," ")
-    .replace(/[^a-zA-Z0-9 .,:;_\-\/()#]/g,"").slice(0,max);
+    .replace(/[^a-zA-Z0-9 _\-]/g,"").slice(0,max);
 }
 export function generatePlaywrightDraft(report) {
   let origin="http://localhost:3000";
