@@ -4,6 +4,7 @@ import { classifyDiagnostic, safeEvidenceUrl, redactDiagnosticText } from "./dia
 let session = null;
 let persistTimer = null;
 let pendingOffscreen = null;
+let lastDraftCheckpoint=0;
 const MAX_EVENTS = 4000;
 const ready = chrome.storage.session.get("tracecueActive").then(({tracecueActive}) => {
   if (tracecueActive) session = {...tracecueActive,requests:new Map(),contexts:new Map()};
@@ -45,6 +46,14 @@ async function persist() {
   if (!session) return;
   const {requests,contexts,...safe} = session;
   await chrome.storage.session.set({tracecueActive:safe});
+  // A durable draft survives browser restarts; avoid writing on every click.
+  const now=Date.now();
+  if(now-lastDraftCheckpoint>3000){
+    lastDraftCheckpoint=now;
+    await chrome.storage.local.set({["draft:"+safe.id]:{
+      ...safe,checkpointAt:now
+    }});
+  }
 }
 async function offscreenReady() {
   const url = chrome.runtime.getURL("offscreen.html");
@@ -151,6 +160,21 @@ async function stop() {
       if (!videoStored) current.events.push({kind:"warning",at:Date.now(),message:"Video storage failed"});
     } catch { current.events.push({kind:"warning",at:Date.now(),message:"Video storage unavailable"}); }
   }
+  // If the offscreen document died, try recovering the last persisted
+  // MediaRecorder chunks rather than silently dropping video evidence.
+  if(!videoStored&&current.video){
+    try{
+      await offscreenReady();
+      const recovered=await chrome.runtime.sendMessage({
+        target:"offscreen",action:"recover-video",id:current.id
+      });
+      videoStored=recovered?.ok===true;
+      if(videoStored)current.events.push({
+        kind:"warning",at:Date.now(),
+        message:"Partial interrupted video recovered from durable chunks; check playback manually"
+      });
+    }catch{}
+  }
   const report = {
     schema:"tracecue-session-v1",id:current.id,title:current.title,url:current.url,
     startedAt:current.startedAt,stoppedAt:Date.now(),environment:current.environment,
@@ -158,6 +182,7 @@ async function stop() {
     events:current.events.map(({signature,...event}) => event)
   };
   await chrome.storage.local.set({["report:" + report.id]:report,lastReportId:report.id});
+  await chrome.storage.local.remove("draft:"+report.id);
   await chrome.storage.session.remove("tracecueActive");
   try { await chrome.action.setBadgeText({tabId:current.tabId,text:""}); } catch {}
   // Only restore the in-tab mascot AFTER the full video is fully stopped.
@@ -201,6 +226,45 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
     await ready;
     const tid=sender.tab?.id || Number(msg.tabId);
     const tab=Number.isSafeInteger(tid)?await chrome.tabs.get(tid).catch(()=>null):null;
+    if(msg.action==="list-drafts"){
+      const all=await chrome.storage.local.get(null);
+      return {ok:true,drafts:Object.entries(all)
+        .filter(([key,value])=>key.startsWith("draft:")&&value?.id&&value.startedAt)
+        .map(([,value])=>({
+          id:value.id,title:value.title||"Unfinished session",
+          startedAt:value.startedAt,checkpointAt:value.checkpointAt,
+          events:value.events?.length||0,
+          active:session?.id===value.id
+        })).sort((a,b)=>b.startedAt-a.startedAt).slice(0,30)};
+    }
+    if(msg.action==="recover-draft"){
+      const id=String(msg.id||"");
+      if(!/^tc-[0-9]{8,20}$/.test(id))return {ok:false,error:"Invalid draft session ID"};
+      if(session?.id===id)return {ok:false,error:"This session is still active; Stop it first"};
+      const draft=(await chrome.storage.local.get("draft:"+id))["draft:"+id];
+      if(!draft)return {ok:false,error:"No saved draft found"};
+      await offscreenReady();
+      const outcome=await chrome.runtime.sendMessage({target:"offscreen",action:"recover-video",id});
+      const report={
+        schema:"tracecue-session-v1",id,title:draft.title||"Recovered QA session",
+        url:draft.url||"",startedAt:draft.startedAt,
+        stoppedAt:Math.max(draft.startedAt,draft.checkpointAt||Date.now()),
+        environment:draft.environment||{},
+        videoStored:outcome?.ok===true,videoStartedAt:draft.videoStartedAt||null,
+        droppedEvents:draft.droppedEvents||0,recovered:true,
+        recoveryNotice:outcome?.ok?
+          "Interrupted recording; recovered local chunks may be incomplete or unplayable.":
+          "No recoverable video; captured event draft restored only.",
+        events:(draft.events||[]).map(({signature,...event})=>event).concat([{
+          kind:"warning",at:Math.max(draft.startedAt,draft.checkpointAt||Date.now()),
+          message:"Recovered session is incomplete; manually verify evidence integrity"
+        }])
+      };
+      await chrome.storage.local.set({["report:"+id]:report,lastReportId:id});
+      await chrome.storage.local.remove("draft:"+id);
+      return {ok:true,reportId:id,videoStored:report.videoStored,recovered:true,
+        message:report.recoveryNotice};
+    }
     if(msg.action==="open-sidebar"){
       if(!tab)return {ok:false,error:"No website tab"};
       await chrome.sidePanel.setOptions({tabId:tab.id,path:"sidepanel.html",enabled:true});
