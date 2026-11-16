@@ -1,3 +1,4 @@
+import { recordedObservations,evidenceCoverage } from "./evidence-intelligence.js";
 // Render only text nodes and explicitly wired event-reference links.
 // AI output is untrusted content: never inject it as markup.
 const text=(tag,value,cls="")=>{
@@ -20,16 +21,35 @@ function section(parent,title,entries){
   for(const entry of entries)s.append(text("p",entry));
   parent.append(s);
 }
-export function renderInvestigation(target,analysis,openEvidence){
+export function renderInvestigation(target,analysis,openEvidence,catalog=[]){
   target.replaceChildren();
   if(!analysis)return;
   const head=text("section","","insight-section");
   head.append(text("small","AI-PROPOSED · NOT A VERIFIED DEFECT","eyebrow"));
   head.append(text("h3",analysis.title));
   head.append(text("p",analysis.summary));
-  head.append(text("small","Confidence: "+analysis.confidence,"confidence-label"));
+  head.append(text("small","AI self-rated confidence: "+analysis.confidence+" (not an independently validated accuracy score)","confidence-label"));
   target.append(head);
-  section(target,"Observed",analysis.observed?[analysis.observed]:["Not stated"]);
+  // Recorded metadata and model interpretations are different sources of truth.
+  const captured=recordedObservations(catalog);
+  const verified=text("section","","insight-section");
+  verified.append(text("h3","Recorded signals · TraceCue evidence"));
+  verified.append(text("small","Captured technical events only; not proof of a product defect."));
+  if(!captured.length)verified.append(text("p","No diagnostic events in the selected AI evidence."));
+  for(const item of captured){
+    const row=text("div","","structured-step");
+    row.append(text("p",item.description));
+    row.append(button(item.id,()=>openEvidence(item.id)));
+    verified.append(row);
+  }
+  target.append(verified);
+  section(target,"AI-observed behavior",analysis.observed?
+    [analysis.observed]:["Not provided by the model. Refer to the recorded signals above."]);
+  const coverage=evidenceCoverage(analysis);
+  section(target,"Evidence completeness",[
+    coverage.status==="incomplete"?"Incomplete; further review required.":"Review still required before claiming a defect.",
+    ...coverage.issues
+  ]);
   const steps=text("section","","insight-section");
   steps.append(text("h3","Tentative reproduction steps"));
   if(!analysis.reproductionSteps.length)steps.append(text("p","No proposed steps."));
