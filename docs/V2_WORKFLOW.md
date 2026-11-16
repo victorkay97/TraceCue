@@ -114,3 +114,19 @@ This section supersedes earlier descriptions that only covered pre-marker video.
 8. Confirm the in-page mascot never appears in any captured frame.
 
 **Not yet verified in live Chrome:** exact WebM encoding/seeking, playback sync and clip-boundary updates. Automated Node tests cover timestamp math, clip evidence scoping and redaction, and Studio build/syntax checks; live video needs the tester's desktop browser.
+
+
+### One-pass QA specialist acceptance scenario (recommended)
+
+Use the local fixture's controls in one recording, without any credentials or real-user data:
+
+- At ~00:20 trigger **Name mismatch**, mark *Name mismatch* with 15s before / +5s after.
+- At ~01:05 trigger **Failed save**, mark *Save failed* with 30s before / +10s after.
+- At ~01:40 trigger **Trace console info & successful fetch**, mark *Successful request trace* with 15s before / 0s after.
+- Stop after ~02:00. This should preserve one continuous full video and three separately named issue packages.
+- Inspect the name-mismatch card's window: only matching interval signals should appear. Expand the save-failure interval, observe its network error/console exception, and search the successful-trace interval for \`console-info\`, \`console-debug\`, and \`network-response\` status 200.
+- Manually trim the failed-save interval, confirm its event list changes, and regenerate its WebM while the other clips remain unchanged.
+- Download or copy each individual issue draft and check that all captured events for that interval are present, not limited to the first 200.
+- Check full WebM carefully for accidental mascot frames, clip audio/video sync, timekeeping, recording persistence and anything missing from logs.
+
+You may adjust the approximate fixture test times. **The timeline is an example, not an automatic scheduled recording**. If errors are not captured, record the discrepancy and do not fabricate expected output.
