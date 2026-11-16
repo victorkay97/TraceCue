@@ -11,3 +11,14 @@
 
 #issueTitle{display:block;width:100%;background:#0b1622;border:1px solid #37465a;border-radius:9px;padding:12px;color:#e5eef8;font:inherit;margin-bottom:17px}
 #issueTitle:focus{outline:2px solid #87c9c5;outline-offset:1px}
+
+.clips-panel{border-top:1px solid #344657;margin-top:23px;padding-top:22px}
+.clips-panel .panel-head{margin-bottom:8px}.clips-panel p{line-height:1.6}
+.clip-row{border:1px solid #354957;border-radius:10px;padding:12px;margin-top:10px;background:#101d29}
+.clip-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.clip-meta strong{color:#dff2f0;font-size:13px}.clip-meta small{color:#9cb0bd;font-size:11px}
+.clip-meta .clip-state{color:#a6d9cd}
+.clip-controls{display:flex;gap:6px;flex-wrap:wrap}
+.clip-controls button{font-size:11px;padding:8px 10px}
+#clipStatus{margin:12px 0}#clipPreview{margin-top:12px;min-height:150px;max-height:270px}
+#retryClips{margin-top:8px}
