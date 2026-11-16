@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-16 — TraceCue 0.2 recording companion and deploy demo
+
+- Added Chrome side panel and standalone popup-window recording workspace, plus a custom in-page floating mascot.
+- Record Start/Stop remains user-initiated; markers store title, timestamp, ID and a 15/30/60/120-second lookback.
+- Added local standalone WebM clipping derived from the original continuous video without overwriting it, with per-clip playback/download and storage cleanup.
+- Added Studio full-WebM local import, event seek, playback highlighting and marker jumps.
+- Added explicit test preconditions, expected/actual results, retest, step review, privacy and authorization checks before GitHub issue handoff.
+- Verified synthetic GitHub issue API round-trip; test issue #2 created and closed.
+- Created Vercel project tracecue-studio-preview and confirmed static Vite deployment READY, with a one-click fictional sample.
+- Added extended CI syntax coverage for companion and clipping scripts and detailed v0.2 Chrome acceptance instructions.
+- **Not yet verified in user Chrome:** new sidebar gestures, floating companion interaction and playable separate WebM clips. Public Firebase App Check domain/env not yet configured.
+
+
 ## 2026-11-16 — Both hybrid inference modes verified in Chrome
 
 - Tester verified Firebase AI Logic `on_device` in TraceCue Studio using Chrome's downloaded local language model.
