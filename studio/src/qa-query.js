@@ -54,6 +54,14 @@ export function searchQaEvidence(report,input,{markerId=null,limit=100}={}){
     "No matching event was captured in the selected "+(markerId?"issue interval":"session")+".";
   if(first){
     explanation+=" First match at video +"+first.second.toFixed(1)+"s ("+first.id+").";
+    const previous=scope.entries.filter(({event})=>
+      ["click","submit","change"].includes(event.kind)&&event.at<=first.at&&
+      first.at-event.at<=15000).at(-1);
+    if(previous){
+      explanation+=" Earlier "+previous.event.kind+" at +"+
+        ((previous.event.at-(Number.isFinite(report.videoStartedAt)?report.videoStartedAt:report.startedAt))/1000).toFixed(1)+
+        "s ("+previous.id+"). Timing is correlation, not proof of causation.";
+    }
   }
   if(wantsCauses)explanation+=" This identifies correlated browser evidence, not the verified server-side root cause.";
   if(wantsWhere)explanation+=" Select an event to seek to its recorded moment when a full video is attached.";

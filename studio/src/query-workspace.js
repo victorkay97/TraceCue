@@ -87,7 +87,12 @@ export function mountQaWorkspace(root,{getSession,onSelect,seek,hasFirebase=fals
     }
     const token=++requestToken;
     const context=buildQaQuestionPrompt(report,question,{markerId:selectedId});
+    if(!context.total){
+      $("qaQueryStatus").textContent="No captured events matched this question; try a broader query. AI will not invent missing evidence.";
+      return;
+    }
     doSearch();$("qaAnswer").textContent="Analyzing selected evidence…";
+    $("qaAnswer").closest("details").open=true;
     $("qaDevice").disabled=true;$("qaCloud").disabled=true;
     try{
       const result=await investigate(context.prompt,mode,message=>{

@@ -8,3 +8,10 @@
 .issue-history li strong{font-size:12px;color:#e9f4f2;font-weight:650;overflow-wrap:anywhere}
 .issue-history li small{font-size:10px;color:#96bcc1}
 .issue-history li.no-marker{font-size:11px;color:#7997a4}
+
+.privacy-log-toggle{display:flex;align-items:flex-start;gap:8px;margin:15px 0 2px;color:#a4bdc5;font-size:11px;font-weight:550}
+.privacy-log-toggle input{width:auto;margin-top:3px;accent-color:#b2e8d8}
+.issue-suggestions{margin:15px 0 10px;border-top:1px dashed #34535f;padding-top:13px}
+.issue-suggestions strong{display:block;font-size:12px;color:#d3ebe7}
+.suggestion-button{display:block;width:100%;text-align:left;font-size:11px;margin:6px 0;background:#223b46;color:#cce7df;border:1px solid #3d6570;padding:9px}
+.suggestion-button:hover{background:#30515c}

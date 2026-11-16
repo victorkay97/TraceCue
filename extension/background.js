@@ -107,8 +107,10 @@ async function start(tab, suppliedStreamId=null, captureInfoLogs=false) {
   try{
     await excludeCompanionFromTab(tab.id);
   }catch(e){
+    const failedId=session?.id;
     session=null;
     await chrome.storage.session.remove("tracecueActive");
+    if(failedId)await chrome.storage.local.remove("draft:"+failedId);
     return {ok:false,error:"Capture refused: "+scrub(e.message)};
   }
   // The widget is removed before the MediaRecorder starts. The sidebar and
@@ -122,8 +124,10 @@ async function start(tab, suppliedStreamId=null, captureInfoLogs=false) {
     session.videoStartedAt = reply.startedAt || null;
   } catch (e) {
     const reason=scrub(e.message);
+    const failedId=session?.id;
     session=null;
     await chrome.storage.session.remove("tracecueActive");
+    if(failedId)await chrome.storage.local.remove("draft:"+failedId);
     await restoreCompanionIfSafe(tab.id,tab.url);
     return {ok:false,error:"Recording could not start: "+reason};
   }
@@ -179,6 +183,7 @@ async function stop() {
     schema:"tracecue-session-v1",id:current.id,title:current.title,url:current.url,
     startedAt:current.startedAt,stoppedAt:Date.now(),environment:current.environment,
     videoStored,videoStartedAt:current.videoStartedAt,droppedEvents:current.droppedEvents,
+    verboseConsoleCaptured:current.captureInfoLogs===true,
     events:current.events.map(({signature,...event}) => event)
   };
   await chrome.storage.local.set({["report:" + report.id]:report,lastReportId:report.id});

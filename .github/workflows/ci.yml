@@ -23,6 +23,15 @@ jobs:
           node --check extension/clip-viewer.js
           node --check extension/issue-export.js
           node --check extension/clip-evidence.js
+          node --check extension/recording-keys.js
+          node --check extension/recovery.js
+          node --check extension/library.js
+          node --check extension/session-library.js
+          node --check studio/src/issue-scope.js
+          node --check studio/src/qa-query.js
+          node --check studio/src/query-workspace.js
+          node --check studio/src/annotation-core.js
+          node --check studio/src/frame-annotator.js
           node --check studio/src/synchronized-video.js
           node --check studio/src/repro-audit.js
       - name: Run evidence processing tests
