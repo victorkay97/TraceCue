@@ -25,14 +25,33 @@ function cleanUrl(raw) {
     }).join("/");
   } catch { return "[unknown]"; }
 }
-function record(kind,data={}) {
-  if (!session) return;
-  if (session.events.length >= MAX_EVENTS) { session.droppedEvents++; return; }
-  session.events.push({kind,at:Date.now(),...data});
+function schedulePersist() {
   if (!persistTimer) persistTimer = setTimeout(() => {
     persistTimer = null;
     persist().catch(() => {});
   },1000);
+}
+// Repeated framework warnings are still counted, but do not bury the investigation
+// under dozens of identical events. Group only the same diagnostic within 4 seconds.
+function record(kind,data={}) {
+  if (!session) return;
+  const now = Date.now();
+  if (["console-warning","console-error","console-exception"].includes(kind)) {
+    const signature = JSON.stringify([kind,data.level ?? "",data.message ?? "",data.url ?? ""]);
+    const recent = session.events.slice(-20).reverse().find(event =>
+      event.signature === signature && now - (event.lastAt || event.at) <= 4000
+    );
+    if (recent) {
+      recent.occurrences = (recent.occurrences || 1) + 1;
+      recent.lastAt = now;
+      schedulePersist();
+      return;
+    }
+    data = {...data,signature};
+  }
+  if (session.events.length >= MAX_EVENTS) { session.droppedEvents++; return; }
+  session.events.push({kind,at:now,...data});
+  schedulePersist();
 }
 async function persist() {
   if (!session) return;
@@ -64,7 +83,7 @@ async function start(tab) {
     id:"tc-" + Date.now(),tabId:tab.id,title:scrub(tab.title,160),
     url:cleanUrl(tab.url),startedAt:Date.now(),events:[],droppedEvents:0,
     environment:{userAgent:navigator.userAgent,platform:navigator.platform || "unknown"},
-    video:false,attached:false,requests:new Map()
+    video:false,videoStartedAt:null,attached:false,requests:new Map()
   };
   await persist();
   // The action click supplies the user gesture for tabCapture.
@@ -74,6 +93,7 @@ async function start(tab) {
     const reply = await chrome.runtime.sendMessage({target:"offscreen",action:"start-video",streamId,id:session.id});
     if (!reply?.ok) throw new Error(reply?.error || "Video recording could not start");
     session.video = true;
+    session.videoStartedAt = reply.startedAt || null;
   } catch (e) {
     record("warning",{message:"Video unavailable: " + scrub(e.message)});
   }
@@ -112,7 +132,8 @@ async function stop() {
   const report = {
     schema:"tracecue-session-v1",id:current.id,title:current.title,url:current.url,
     startedAt:current.startedAt,stoppedAt:Date.now(),environment:current.environment,
-    videoStored,droppedEvents:current.droppedEvents,events:current.events
+    videoStored,videoStartedAt:current.videoStartedAt,droppedEvents:current.droppedEvents,
+    events:current.events.map(({signature,...event}) => event)
   };
   await chrome.storage.local.set({["report:" + report.id]:report,lastReportId:report.id});
   await chrome.storage.session.remove("tracecueActive");
@@ -184,10 +205,12 @@ chrome.debugger.onEvent.addListener(async (source,method,params) => {
     record("network-failure",{method:request?.method || "?",url:request?.url || "[unknown]",message:scrub(params.errorText)});
   } else if (method === "Runtime.exceptionThrown") {
     record("console-exception",{message:scrub(params.exceptionDetails?.text),url:cleanUrl(params.exceptionDetails?.url)});
-  } else if (method === "Runtime.consoleAPICalled" && ["error","warning","assert"].includes(params.type)) {
-    // Console strings can contain secrets. Keep messages shortened and redacted.
-    record("console-error",{level:params.type,message:scrub((params.args || []).map(x => x.value ?? x.description ?? "").join(" "))});
-  } else if (method === "Log.entryAdded" && ["error","warning"].includes(params.entry?.level)) {
-    record("console-error",{level:params.entry.level,message:scrub(params.entry.text)});
+  } else if (method === "Runtime.consoleAPICalled" && ["error","warning","warn","assert"].includes(params.type)) {
+    // Preserve severity. Warning-level framework noise is not evidence of a bug.
+    const kind = ["warning","warn"].includes(params.type) ? "console-warning" : "console-error";
+    record(kind,{level:params.type,message:scrub((params.args || []).map(x => x.value ?? x.description ?? "").join(" "))});
+  } else if (method === "Log.entryAdded" && ["error","warning","warn"].includes(params.entry?.level)) {
+    const kind = ["warning","warn"].includes(params.entry.level) ? "console-warning" : "console-error";
+    record(kind,{level:params.entry.level,message:scrub(params.entry.text)});
   }
 });
