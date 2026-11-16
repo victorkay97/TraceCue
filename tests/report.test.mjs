@@ -13,7 +13,7 @@ const basic = () => ({
 });
 test("valid session is summarized",()=>{
   const report=validateReport(basic());
-  assert.deepEqual(summarize(report),{events:2,errors:1,warnings:0,interactions:1,markers:0,duration:4});
+  assert.deepEqual(summarize(report),{events:2,errors:1,warnings:0,environment:0,interactions:1,markers:0,duration:4});
 });
 test("rejects unsupported schema, invalid dates, unexpected events",()=>{
   assert.throws(()=>validateReport({schema:"nope",events:[]}));
@@ -66,4 +66,29 @@ test("new console-warning entries stay distinct from exceptions",()=>{
   assert.equal(summary.errors,2);
   assert.equal(summary.warnings,1);
   assert.equal(summary.events,4);
+});
+
+test("legacy extension messaging is classified as environment, not application failure",()=>{
+  const report=basic();
+  report.events.push({
+    kind:"console-error",level:"error",at:3400,
+    message:"Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.",
+    occurrences:28
+  });
+  const summary=summarize(report);
+  assert.equal(summary.errors,1);
+  assert.equal(summary.environment,28);
+  assert.equal(summary.events,30);
+  const prompt=buildPrompt(report,"Capture diagnostics");
+  assert.match(prompt,/"type":"environment-diagnostic"/);
+  assert.match(prompt,/"occurrences":28/);
+});
+test("actual exceptions remain failures",()=>{
+  const report=basic();
+  report.events.push({kind:"console-exception",at:3500,message:"Uncaught TypeError"});
+  report.events.push({kind:"console-warning",at:3600,message:"Some harmless framework warning"});
+  const summary=summarize(report);
+  assert.equal(summary.errors,2);
+  assert.equal(summary.warnings,1);
+  assert.equal(summary.environment,0);
 });
