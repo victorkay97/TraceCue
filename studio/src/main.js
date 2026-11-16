@@ -1,6 +1,7 @@
 import "./styles.css";
 import { validateReport,summarize,buildPrompt,exportIssue,saveText } from "./report.js";
 import { investigate } from "./firebase-ai.js";
+import { generatePlaywrightDraft } from "./playwright-draft.js";
 
 let session = null;
 let analysis = null;
@@ -35,6 +36,7 @@ app.innerHTML = [
         '<p id="aiStatus" class="status-text">No model has been invoked.</p>',
         '<div id="aiResult" class="output">Analysis output will appear here only after a real AI response.</div>',
         '<button id="export" class="download" disabled>↓ &nbsp; Download investigation (.md)</button>',
+        '<button id="playwright" class="download" disabled>↓ &nbsp; Draft Playwright test (.spec.ts)</button>',
         '</section>',
       '</div>',
       '<footer>TraceCue Studio · Evidence-first QA · No task-management features or fabricated AI results.</footer>',
@@ -95,7 +97,7 @@ $("file").addEventListener("change",async event => {
     $("sessionMeta").textContent=(data.title || data.id) + " · " + new Date(data.startedAt).toLocaleString() +
       " · " + (data.url || "Unknown origin");
     $("notes").value=(data.testerNotes || "").slice(0,2500);
-    $("device").disabled=false;$("cloud").disabled=false;
+    $("device").disabled=false;$("cloud").disabled=false;$("playwright").disabled=false;
     $("aiStatus").textContent="Evidence imported locally. AI has not been invoked.";
     renderTimeline();syncPrompt();
   } catch (error) {
@@ -130,4 +132,9 @@ $("export").addEventListener("click",() => {
   if (!session) return;
   saveText("tracecue-" + session.id + "-investigation.md",
     exportIssue(session,$("notes").value,analysis),"text/markdown");
+});
+
+$("playwright").addEventListener("click",() => {
+  if (!session) return;
+  saveText("tracecue-" + session.id + ".spec.ts",generatePlaywrightDraft(session),"text/plain");
 });
