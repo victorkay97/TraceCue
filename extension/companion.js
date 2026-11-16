@@ -15,6 +15,9 @@ const message=value=>{$(".msg").textContent=value;};
 async function refresh(){
   const status=await send("status");
   const active=!!status?.activeOnTab;
+  // Fail closed: a mascot injected before navigation or service-worker restart
+  // must never remain visible once the tab becomes the recorded target.
+  if(active){ host.remove(); return; }
   $(".status").textContent=active?"● Recording":status?.recording?"Recording another tab":"Idle";
   $(".status").classList.toggle("recording",active);
   $(".rec").classList.toggle("active",active);
