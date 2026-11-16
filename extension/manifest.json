@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "TraceCue Companion — Development",
+  "version": "0.1.0",
+  "description": "User-initiated QA recorder for permitted testing sessions. Evidence remains on your device.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabCapture",
+    "offscreen",
+    "debugger",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "TraceCue — click to start or stop QA recording"
+  },
+  "commands": {
+    "mark-issue": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+9",
+        "mac": "Command+Shift+9"
+      },
+      "description": "Mark a bug in the active TraceCue recording"
+    }
+  }
+}

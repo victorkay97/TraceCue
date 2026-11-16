@@ -1,0 +1,44 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {validateReport,summarize,buildPrompt,exportIssue} from "../studio/src/report.js";
+
+const basic = () => ({
+  schema:"tracecue-session-v1",id:"tc-test",startedAt:1000,stoppedAt:5000,
+  title:"Fictional QA session",url:"https://demo.example/secret-account/123?token=123",
+  events:[
+    {kind:"click",at:2000,element:"button"},
+    {kind:"network-failure",at:3000,status:500,method:"POST",
+     url:"https://secret.example/users?token=leak",body:"private-body",headers:"Authorization: Bearer hidden"}
+  ]
+});
+test("valid session is summarized",()=>{
+  const report=validateReport(basic());
+  assert.deepEqual(summarize(report),{events:2,errors:1,interactions:1,markers:0,duration:4});
+});
+test("rejects unsupported schema, invalid dates, unexpected events",()=>{
+  assert.throws(()=>validateReport({schema:"nope",events:[]}));
+  const dates=basic();dates.stoppedAt=-2;
+  assert.throws(()=>validateReport(dates));
+  const kinds=basic();kinds.events.push({kind:"unsafe-extra",at:5000});
+  assert.throws(()=>validateReport(kinds));
+});
+test("default AI prompt excludes raw URLs, headers and payloads",()=>{
+  const prompt=buildPrompt(basic(),"Save button failed");
+  assert.equal(prompt.includes("secret.example"),false);
+  assert.equal(prompt.includes("private-body"),false);
+  assert.equal(prompt.includes("Authorization"),false);
+  assert.equal(prompt.includes("token=123"),false);
+  assert.match(prompt,/Save button failed/);
+  assert.match(prompt,/500/);
+});
+test("cloud prompt removes obvious private strings from notes",()=>{
+  const prompt=buildPrompt(basic(),"Email alex@example.com password=abc123 Bearer z9");
+  assert.equal(prompt.includes("alex@example.com"),false);
+  assert.equal(prompt.includes("abc123"),false);
+  assert.equal(prompt.includes("Bearer z9"),false);
+});
+test("issue export includes disclosure and does not claim reproduction",()=>{
+  const text=exportIssue(basic(),"Expected save, actual failure",null);
+  assert.match(text,/No AI analysis performed/);
+  assert.match(text,/Verify suggested steps manually/);
+});

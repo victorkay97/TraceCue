@@ -1,0 +1,97 @@
+// Local extension session viewer. Never fetches from remote hosts.
+const $ = id => document.getElementById(id);
+const id = new URLSearchParams(location.search).get("id");
+const item = await chrome.storage.local.get("report:" + id);
+const report = item["report:" + id];
+if (!report) {
+  $("title").textContent = "Recording not found";
+  throw new Error("Missing TraceCue report");
+}
+$("title").textContent = report.title || "Untitled QA session";
+$("meta").textContent = new Date(report.startedAt).toLocaleString() + " · " +
+  report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s";
+$("count").textContent = report.events.length + " events";
+const categories = new Map();
+for (const event of report.events) categories.set(event.kind,(categories.get(event.kind)||0)+1);
+for (const [kind,count] of categories) {
+  const element = document.createElement("span");
+  element.className = "pill";
+  element.textContent = kind + ": " + count;
+  $("summary").append(element);
+}
+const timeline = $("timeline");
+for (const event of report.events) {
+  const row = document.createElement("div");
+  row.className = "event" + (/error|exception|failure|warning/.test(event.kind) ? " warn" : "") +
+    (event.kind === "issue-marker" ? " marker" : "");
+  const time = document.createElement("time");
+  time.textContent = "+" + ((event.at-report.startedAt)/1000).toFixed(1) + "s";
+  const info = document.createElement("div");
+  const title = document.createElement("strong");
+  title.textContent = event.kind;
+  const desc = document.createElement("p");
+  desc.textContent = Object.entries(event).filter(([key])=>key !== "at" && key !== "kind")
+    .map(([key,value]) => key + ": " + String(value)).join(" · ");
+  info.append(title,desc); row.append(time,info); timeline.append(row);
+}
+$("notes").value = report.testerNotes || "";
+$("notes").addEventListener("input",() => {
+  report.testerNotes = $("notes").value.slice(0,2500);
+  chrome.storage.local.set({["report:" + id]:report}).catch(console.error);
+});
+let videoBlob = null;
+function openDb() {
+  return new Promise((resolve,reject) => {
+    const req = indexedDB.open("tracecue-videos",1);
+    req.onupgradeneeded = () => req.result.createObjectStore("recordings");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+try {
+  const db = await openDb();
+  videoBlob = await new Promise((resolve,reject) => {
+    const tx = db.transaction("recordings","readonly");
+    const get = tx.objectStore("recordings").get(id);
+    get.onsuccess = () => resolve(get.result);
+    get.onerror = () => reject(get.error);
+  });
+  db.close();
+  if (videoBlob) {
+    $("video").src = URL.createObjectURL(videoBlob);
+    $("videoStatus").textContent = (videoBlob.size/1024/1024).toFixed(1) + " MB · stored locally";
+  } else {
+    $("video").hidden = true;
+    $("videoStatus").textContent = "No video found; event evidence may be available.";
+  }
+} catch (error) {
+  $("videoStatus").textContent = "Video unavailable: " + error.message;
+}
+window.addEventListener("beforeunload",() => {if ($("video").src) URL.revokeObjectURL($("video").src);});
+function download(blob,name) {
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=name;a.click();
+  setTimeout(() => URL.revokeObjectURL(url),5000);
+}
+$("saveVideo").disabled = !videoBlob;
+$("saveVideo").addEventListener("click",()=>videoBlob && download(videoBlob,id + ".webm"));
+$("saveJson").addEventListener("click",() =>
+  download(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),id + ".json"));
+$("saveMarkdown").addEventListener("click",() => {
+  const lines = [
+    "# " + (report.title || "Untitled QA observation"),"",
+    "**Tested origin:** " + report.url,
+    "**Recorded:** " + new Date(report.startedAt).toISOString(),"",
+    "## Expected and actual behaviour","",report.testerNotes || "(Add tester notes)","",
+    "## Evidence timeline","",
+    ...report.events.map(e=>"- +" + ((e.at-report.startedAt)/1000).toFixed(1) + "s — " +
+      e.kind + ": " + [e.element,e.message,e.url,e.status].filter(Boolean).join(" · ")),"",
+    "## Reproduction checklist","",
+    "- [ ] Confirm prerequisites, account state, and test data",
+    "- [ ] Verify every step against the recording",
+    "- [ ] Reproduce the issue in an authorized environment","",
+    "## Privacy review","",
+    "- [ ] Remove sensitive information from recordings before sharing"
+  ];
+  download(new Blob([lines.join("\n")],{type:"text/markdown"}),id + ".md");
+});

@@ -1,0 +1,11 @@
+{
+  "name": "tracecue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "studio:dev": "npm --prefix studio run dev",
+    "studio:build": "npm --prefix studio run build"
+  }
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TraceCue · Session review</title><link rel="stylesheet" href="viewer.css"></head>
+<body>
+  <header class="top">
+    <div class="identity"><span class="logo">T<span class="dot">•</span></span><div><strong>TraceCue</strong><small>QA Companion</small></div></div>
+    <span class="status">Private local evidence</span>
+  </header>
+  <main>
+    <div class="eyebrow">SESSION REVIEW</div>
+    <h1 id="title">Loading session…</h1>
+    <p id="meta" class="muted"></p>
+    <div class="notice"><strong>Privacy checkpoint.</strong> Recordings can display private information. Review the video and technical logs before sharing any exports.</div>
+    <section class="stats" id="summary"></section>
+    <div class="columns">
+      <section class="panel">
+        <div class="panel-head"><h2>Recorded tab</h2><span id="videoStatus">Loading local recording…</span></div>
+        <video id="video" controls playsinline></video>
+        <div class="toolbar">
+          <button id="saveVideo">Save video</button>
+          <button id="saveJson" class="secondary">Export session JSON</button>
+          <button id="saveMarkdown" class="secondary">Export issue draft</button>
+        </div>
+        <label for="notes">Tester notes / expected vs actual</label>
+        <textarea id="notes" rows="5" placeholder="Expected: save succeeds. Actual: response 500 and UI is unchanged."></textarea>
+        <p class="muted tiny">Notes are stored only in your browser until you choose to export.</p>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Evidence timeline</h2><span id="count"></span></div>
+        <div id="timeline"></div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="viewer.js"></script>
+</body></html>
