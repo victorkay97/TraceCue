@@ -1,8 +1,9 @@
 // Data minimization deliberately occurs before any Firebase prompt is built.
 // Imported report JSON is untrusted. Avoid evaluating or injecting its text as HTML.
-const allowed = new Set(["click","submit","change","page-ready","network-failure","console-error","console-warning","console-exception","warning","issue-marker","capture-started","capture-stopped"]);
+const allowed = new Set(["click","submit","change","page-ready","network-failure","console-error","console-warning","console-exception","environment-diagnostic","warning","issue-marker","capture-started","capture-stopped"]);
 const failure = new Set(["network-failure","console-error","console-exception"]);
 const warning = new Set(["console-warning","warning"]);
+const environment = new Set(["environment-diagnostic"]);
 const interaction = new Set(["click","submit","change","page-ready"]);
 function clean(text,max=200) {
   return String(text ?? "").slice(0,max)
@@ -25,9 +26,18 @@ export function validateReport(input) {
   return input;
 }
 export function eventKind(event) {
-  // Older TraceCue versions stored warning-level logs as console-error.
-  return event.kind === "console-error" && ["warning","warn"].includes(event.level) ?
-    "console-warning" : event.kind;
+  // Include older recordings with extension/runtime messaging captured as site errors.
+  if (event.kind === "console-error" || event.kind === "console-warning" ||
+      event.kind === "environment-diagnostic") {
+    if (event.kind === "environment-diagnostic" ||
+        (/unchecked runtime\.lastError/i.test(event.message || "") &&
+        /could not establish connection|receiving end does not exist|message port closed/i.test(event.message || ""))) {
+      return "environment-diagnostic";
+    }
+  }
+  if (event.kind === "console-error" && ["warning","warn"].includes(event.level))
+    return "console-warning";
+  return event.kind;
 }
 const times = event => Number.isInteger(event.occurrences) && event.occurrences > 0 ?
   event.occurrences : 1;
@@ -36,6 +46,7 @@ export function summarize(report) {
     events:report.events.reduce((n,e)=>n+times(e),0),
     errors:report.events.filter(e=>failure.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
     warnings:report.events.filter(e=>warning.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
+    environment:report.events.filter(e=>environment.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
     interactions:report.events.filter(e=>interaction.has(eventKind(e))).reduce((n,e)=>n+times(e),0),
     markers:report.events.filter(e=>eventKind(e) === "issue-marker").length,
     duration:Math.max(0,Math.round((report.stoppedAt-report.startedAt)/1000))
