@@ -92,3 +92,17 @@ test("actual exceptions remain failures",()=>{
   assert.equal(summary.warnings,1);
   assert.equal(summary.environment,0);
 });
+
+test("tester-provided issue title is separate from tested page title",()=>{
+  const report=basic();
+  report.title="Shop homepage";
+  report.issueTitle="Checkout button never responds";
+  const markdown=exportIssue(report,"Click did not respond",null);
+  assert.match(markdown,/^# Checkout button never responds/m);
+  assert.match(markdown,/Tested page: Shop homepage/);
+});
+test("a browsing session is not automatically labeled as a defect",()=>{
+  const markdown=exportIssue(basic(),"No issue observed",null);
+  assert.match(markdown,/^# Untitled QA observation/m);
+  assert.doesNotMatch(markdown,/^# Fictional QA session/m);
+});
