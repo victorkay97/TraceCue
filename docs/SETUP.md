@@ -117,3 +117,17 @@ localSession.destroy();
 ~~~
 
 TraceCue now passes the English text parameters through `onDeviceParams.createOptions` in ONLY_ON_DEVICE mode. Content-script console messages from unrelated extensions do not establish model readiness.
+
+## Both inference modes verified — November 16, 2026
+
+Real Chrome testing confirmed Firebase AI Logic's `in_cloud` and `on_device` source values. The Chrome local text model was first downloaded through the Prompt API and then successfully used through TraceCue Studio's `ONLY_ON_DEVICE` flow. Tests used fictional sample evidence. This does not verify a real customer-site defect.
+
+## GitHub Issues handoff — review before publishing
+
+After receiving a structured AI investigation, the Studio now provides a GitHub Issues draft panel. Enter a repository in `owner/repository` format. The draft contains minimized technical event signals, clearly labeled model suggestions, event IDs, missing information and review checkboxes. No video files, raw console messages, request bodies, credentials or cookies are intentionally included. Redaction is best effort: always review carefully.
+
+1. Click **Copy issue draft**. This copies the draft locally to your clipboard; it does not send data to GitHub.
+2. Click **Open GitHub Issues** to open the selected repository's new-issue form. This sends only the repository path in the URL, not the issue body.
+3. Paste the title and body, remove private details, verify the defect with the engineering team, and submit manually.
+
+This first handoff is intentionally not a GitHub Issues OAuth publishing integration. It never automatically posts to a remote service.
