@@ -59,6 +59,27 @@ async function observe(tabId) {
   try { await chrome.scripting.executeScript({target:{tabId},files:["content.js"]}); }
   catch (e) { record("warning",{message:"Page observer unavailable: " + scrub(e.message)}); }
 }
+// Captured-tab pixels include in-page DOM overlays. Remove our own widget
+// BEFORE MediaRecorder starts; keep controls in the Chrome side panel/window.
+async function excludeCompanionFromTab(tabId) {
+  const result=await chrome.scripting.executeScript({
+    target:{tabId},
+    func:()=>{
+      document.getElementById("tracecue-companion-root")?.remove();
+      return !document.getElementById("tracecue-companion-root");
+    }
+  });
+  if(result?.[0]?.result!==true)
+    throw new Error("Unable to exclude TraceCue controls from the capture");
+}
+async function restoreCompanionIfSafe(tabId,originalUrl){
+  try {
+    const tab=await chrome.tabs.get(tabId);
+    if(!/^https?:\/\//.test(tab.url||"") ||
+      new URL(tab.url).origin!==new URL(originalUrl).origin)return;
+    await chrome.scripting.executeScript({target:{tabId},files:["companion.js"]});
+  }catch{ /* A closed or redirected tab must not be reinjected. */ }
+}
 async function start(tab, suppliedStreamId=null) {
   if (session) return;
   if (!tab?.id || !/^https?:\/\//.test(tab.url || "")) {
@@ -72,7 +93,15 @@ async function start(tab, suppliedStreamId=null) {
     video:false,videoStartedAt:null,attached:false,requests:new Map(),contexts:new Map()
   };
   await persist();
-  // The action click supplies the user gesture for tabCapture.
+  try{
+    await excludeCompanionFromTab(tab.id);
+  }catch(e){
+    session=null;
+    await chrome.storage.session.remove("tracecueActive");
+    return {ok:false,error:"Capture refused: "+scrub(e.message)};
+  }
+  // The widget is removed before the MediaRecorder starts. The sidebar and
+  // separately opened companion window remain visible outside the tab image.
   try {
     await offscreenReady();
     const streamId = suppliedStreamId || await chrome.tabCapture.getMediaStreamId({targetTabId:tab.id});
@@ -84,6 +113,7 @@ async function start(tab, suppliedStreamId=null) {
     const reason=scrub(e.message);
     session=null;
     await chrome.storage.session.remove("tracecueActive");
+    await restoreCompanionIfSafe(tab.id,tab.url);
     return {ok:false,error:"Recording could not start: "+reason};
   }
   try {
@@ -128,6 +158,8 @@ async function stop() {
   await chrome.storage.local.set({["report:" + report.id]:report,lastReportId:report.id});
   await chrome.storage.session.remove("tracecueActive");
   try { await chrome.action.setBadgeText({tabId:current.tabId,text:""}); } catch {}
+  // Only restore the in-tab mascot AFTER the full video is fully stopped.
+  await restoreCompanionIfSafe(current.tabId,current.url);
   await chrome.tabs.create({url:chrome.runtime.getURL("viewer.html?id=" + encodeURIComponent(report.id))});
   return {ok:true,reportId:report.id,videoStored};
 }
@@ -137,7 +169,9 @@ chrome.action.onClicked.addListener(async tab => {
   try{
     await chrome.sidePanel.open({tabId:tab.id});
     await observe(tab.id);
-    await chrome.scripting.executeScript({target:{tabId:tab.id},files:["companion.js"]});
+    if(!session || session.tabId!==tab.id){
+      await chrome.scripting.executeScript({target:{tabId:tab.id},files:["companion.js"]});
+    }
   }catch(e){console.error("TraceCue companion failed",e);}
 });
 chrome.commands.onCommand.addListener(async command => {
@@ -171,10 +205,15 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
       await chrome.sidePanel.open({tabId:tab.id});
       return {ok:true};
     }
-    if(msg.action==="status")return {
-      ok:true,recording:!!session,activeOnTab:session?.tabId===tab?.id,
-      startedAt:session?.startedAt??null,tabId:session?.tabId??null
-    };
+    if(msg.action==="status"){
+      const activeOnTab=!!session && session.tabId===tab?.id;
+      return {
+        ok:true,recording:!!session,activeOnTab,
+        startedAt:activeOnTab?session.startedAt:null,tabId:session?.tabId??null,
+        markers:activeOnTab ? session.events.filter(e=>e.kind==="issue-marker").slice(-40)
+          .map(({markerId,title,lookbackSeconds,at})=>({markerId,title,lookbackSeconds,at})): []
+      };
+    }
     if(msg.action==="start"){
       if(!tab || !/^https?:\/\//.test(tab.url||""))return {ok:false,error:"Choose an authorized website tab"};
       if(session)return {ok:false,error:"Another recording is already active"};
@@ -214,7 +253,8 @@ chrome.tabs.onUpdated.addListener(async (tabId,change,tab) => {
   }
   if (change.status === "complete" && /^https?:\/\//.test(tab.url || "")) {
     await observe(tabId);
-    await chrome.scripting.executeScript({target:{tabId},files:["companion.js"]}).catch(()=>{});
+    // Never re-inject a DOM widget during active tab capture, including reloads.
+    // Recording controls remain in Chrome UI outside the captured webpage.
   }
 });
 chrome.tabs.onRemoved.addListener(async tabId => { await ready; if (session?.tabId === tabId) await stop(); });
