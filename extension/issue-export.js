@@ -26,6 +26,8 @@ export function issueDraft(report,marker){
     "- Trimmed manually: "+(bounds.edited?"Yes":"No"),
     "- Severity (tester-rated): "+redactDiagnosticText(marker.severity||"unrated",20),
     "- Reproducibility (tester-reported): "+redactDiagnosticText(marker.reproducibility||"not-retested",25),
+    "- OS/platform: "+redactDiagnosticText(report.environment?.platform||"not captured",100),
+    "- Browser environment: "+redactDiagnosticText(report.environment?.userAgent||"not captured",350),
     "",
     "## Expected behavior",
     redactDiagnosticText(marker.expectedBehavior||"Not provided",1500),
@@ -68,6 +70,10 @@ export function issueJson(report,marker){
     expectedBehavior:redactDiagnosticText(marker.expectedBehavior||"",1500),
     actualBehavior:redactDiagnosticText(marker.actualBehavior||"",1500),
     reproductionSteps:redactDiagnosticText(marker.reproductionSteps||"",1500),
+    environment:{
+      platform:redactDiagnosticText(report.environment?.platform||"",100),
+      userAgent:redactDiagnosticText(report.environment?.userAgent||"",350)
+    },
     clip:{
       startSecond:bounds.start,endSecond:bounds.end,
       requestedLookbackSeconds:bounds.lookback,postBufferSeconds:bounds.postBuffer,
