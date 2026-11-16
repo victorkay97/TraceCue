@@ -1,4 +1,5 @@
 import { redactDiagnosticText, safeEvidenceUrl } from "./diagnostics.js";
+import {setupClipViewer} from "./clip-viewer.js";
 // Local extension session viewer. Never fetches from remote hosts.
 const $ = id => document.getElementById(id);
 const id = new URLSearchParams(location.search).get("id");
@@ -207,7 +208,16 @@ $("deleteSession").addEventListener("click",async () => {
     const db = await openDb();
     await new Promise((resolve,reject) => {
       const tx = db.transaction("recordings","readwrite");
-      tx.objectStore("recordings").delete(id);
+      const store=tx.objectStore("recordings");
+      store.delete(id);
+      // Remove separately saved issue clips as part of the same transaction.
+      const cursor=store.openCursor();
+      cursor.onsuccess=()=>{
+        const entry=cursor.result;
+        if(!entry)return;
+        if(typeof entry.key==="string"&&entry.key.startsWith("clip:"+id+":"))entry.delete();
+        entry.continue();
+      };
       tx.oncomplete = resolve;
       tx.onerror = () => reject(tx.error);
     });
@@ -223,4 +233,12 @@ $("deleteSession").addEventListener("click",async () => {
   } catch(error) {
     alert("Could not delete the complete session: " + error.message);
   }
+});
+
+
+setupClipViewer({
+  report,id,videoBlob,video:$("video"),openDb,download,seekEvent,
+  saveReport:async updated=>chrome.storage.local.set({["report:"+id]:updated})
+}).catch(error=>{
+  $("clipStatus").textContent="Clip viewer unavailable: "+error.message;
 });
