@@ -4,7 +4,7 @@
 
 **Product promise:** *Record once. Explain every issue with the evidence around it.*
 
-Last reviewed: November 16, 2026. This document identifies current development status and open implementation work; no future items below should be represented as already shipped.
+Last reviewed: November 18, 2026. This document identifies current development status and open implementation work; no future items below should be represented as already shipped.
 
 ## Primary user workflows
 
@@ -56,6 +56,12 @@ Last reviewed: November 16, 2026. This document identifies current development s
 | Handoff | OAuth publishing to GitHub/Jira/Linear | Not implemented | Explicit auth and redaction |
 | Deploy | Static fictional Studio demo | Vercel READY | Production Firebase domain/env |
 | Reliability | Incremental crash-resistant video storage | Built: local chunk journal and explicit partial recovery, Chrome pending | Force-close and inspect recovered video |
+
+## TraceCue 0.6 Phase 1: multi-actor QA investigations
+
+Built in the development branch: optional per-recording scenario ID, anonymized tenant alias, actor role and actor label; local Studio workspace for importing multiple independently recorded sessions; role-specific event evidence, session-relative clocks and tenant-filtered comparisons. Other tenant aliases remain excluded unless intentionally included by an authorized reviewer. This is **not** remote synchronization or a security enforcement backend. Actual two-device testing and Chrome recording acceptance are pending.
+
+Phase 2 will require secure account-based invitation/sharing, consent and access controls. Phase 3 may orchestrate authorized Playwright browser contexts for multi-role permission/regression testing. See [0.6 detailed scope and acceptance](RELEASE_0_6.md).
 
 ## TraceCue 0.5 first-use and launch readiness
 

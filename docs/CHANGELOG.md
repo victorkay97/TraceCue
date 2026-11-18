@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-18 — TraceCue 0.6 Phase 1 · Multi-Actor QA
+
+- Added optional scenario ID, anonymized tenant alias, actor role and actor alias inputs to the Chrome capture sidebar; metadata carries into completed and recovered session reports.
+- Added a local-first **Multi-actor scenarios** Studio workspace: import several actor JSON files, group by tenant and role, inspect session-specific signals, export a minimized summary, and open one actor's recording independently.
+- Tenant comparison excludes other tenant aliases by default; combining tenants requires an explicit authorization confirmation and remains local-only.
+- Added four entirely fictional recordings (administrator/student/lecturer and another-tenant student) to test the role-aware workflow.
+- Preserved independent session EV references; warned that computer clocks cannot be assumed synchronized.
+- Added model tests for schema compatibility, role labeling, tenant exclusion, and a real fixture. Chrome and cross-PC acceptance remain outstanding.
+- Accounts, cloud collaboration, role authentication, cross-tenant security test execution, and automatic multi-device synchronization remain **not implemented**.
+
+
 ## 2026-11-16 — TraceCue 0.5 First-Use Experience & Launch Readiness
 
 - Added a dedicated responsive landing page with an interactive product journey, fictional demo, privacy disclosure, FAQs, and honest developer-preview installation links.

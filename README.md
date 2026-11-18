@@ -2,7 +2,7 @@
 
 **Every bug has a trail.** TraceCue is a permission-based QA evidence and intelligence platform: a Chrome companion captures an authorized testing session; TraceCue Studio helps reviewers inspect what happened, understand defects, and send actionable reports to their existing engineering tools.
 
-> **Status:** Active development for Firebase #BuildHybridAI 2026. Original tab capture and text inference sources (`on_device`, `in_cloud`) were previously verified in Chrome. New TraceCue 0.5 capture and first-use experience, clip renderer, recovery, annotations, issue-scoped queries and visual cloud inference require live browser acceptance; compilation does not prove end-to-end video behavior.
+> **Status:** Active development for Firebase #BuildHybridAI 2026. Original tab capture and text inference sources (`on_device`, `in_cloud`) were previously verified in Chrome. TraceCue 0.6 Phase 1 multi-actor scenarios alongside 0.5 capture and first-use experience, clip renderer, recovery, annotations, issue-scoped queries and visual cloud inference require live browser acceptance; compilation does not prove end-to-end video behavior.
 
 ## Product boundaries
 
@@ -11,7 +11,7 @@ TraceCue **is not** a Jira, Linear, or ClickUp clone. It owns **sessions, eviden
 ## Repositories / components
 
 - **extension/** — Chrome MV3 native sidebar/companion, permissioned recording with durable IndexedDB chunks and local recovery, individually editable issue clips, opt-in verbose diagnostics, a searchable session library and a local review/export workspace.
-- **studio/** — Vite workspace with issue-scoped Firebase AI, deterministic queries over captured logs (including HTTP statuses), opt-in cloud-only video questions, synchronized events/video, screenshot annotation and human-reviewed handoffs.
+- **studio/** — Vite workspace with optional multi-actor scenarios grouped by tenant and role, issue-scoped Firebase AI, deterministic queries over captured logs (including HTTP statuses), opt-in cloud-only video questions, synchronized events/video, screenshot annotation and human-reviewed handoffs.
 - **tests/** — capture/report unit tests.
 - **docs/** — system design, security boundaries, setup and hackathon progress.
 
@@ -47,6 +47,12 @@ Apache License 2.0; see [LICENSE](LICENSE). See [third-party decisions](docs/THI
 ## TraceCue Studio public demo
 
 [Open the TraceCue homepage](https://tracecue-studio-preview.vercel.app/) or [launch the fictional Studio demonstration](https://tracecue-studio-preview.vercel.app/app.html?demo=1). Vercel confirmed that the development-branch build is ready. The public demo includes fictional QA evidence and no private recordings. It does **not** yet have production Firebase credentials or App Check domain registration; local Firebase hybrid inference was verified separately. See [the current acceptance workflow](docs/V2_WORKFLOW.md) before claiming the newly added clipping/companion features are browser-verified. See also the [QA specialist's product roadmap](docs/QA_WORKSPACE_ROADMAP.md) for prioritized research, usability and reliability work. See [TraceCue 0.5 first-use release notes](docs/RELEASE_0_5.md) and [Chrome Web Store readiness](docs/WEB_STORE_READINESS.md).
+
+## Multi-actor QA scenarios (0.6 Phase 1)
+
+Test the same authorized application as an administrator, student, lecturer or other role—even from different computers—using one shared **scenario ID** and anonymized tenant/actor labels in the extension sidebar. Each completed recording retains its original video and EV references. Import several exported session JSON files in Studio's **Multi-actor scenarios** workspace to compare captured signals per role, with **tenant isolation enabled by default**.
+
+For immediate evaluation, open [Studio](https://tracecue-studio-preview.vercel.app/app.html) and click **Try fictional multi-actor example**. The four fictional sessions include three actors in school A and one in school B. Cross-tenant comparison is a deliberate, confirmed local action; no real-time cloud collaboration, live device orchestration or automatic credentials are implied. See [0.6 Phase 1 notes](docs/RELEASE_0_6.md).
 
 ## Hackathon progress
 

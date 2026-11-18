@@ -1,6 +1,6 @@
 # Install TraceCue Companion — Development Preview
 
-**TraceCue 0.5 • Windows/macOS/Linux Chrome desktop • Developer/testing use only**
+**TraceCue 0.6 Phase 1 developer build • Windows/macOS/Linux Chrome desktop • Developer/testing use only**
 
 TraceCue is **not yet available in the Chrome Web Store**. The buttons on the public landing page do not claim otherwise. This installation uses Chrome's Developer Mode, which is appropriate for authorized QA testing but is not an ordinary consumer installation path.
 
@@ -48,6 +48,14 @@ From the extension viewer, find **Continue in Studio**, review the evidence, cho
 - If your full WebM exceeds 80 MB or is not available, the session JSON may transfer without the video. You can attach the WebM manually from the Studio video importer.
 - If the browser blocks the window handshake or the Studio page is unavailable, use **Export redacted JSON** and **Save video**, then import both files in Studio.
 - The source extension review tab must remain open until the destination acknowledges the import.
+
+## Multi-actor test scenarios (Phase 1)
+
+Before clicking **Start recording**, expand **Multi-actor scenario (Optional)** in the sidebar. For a scenario such as `enrollment-run-01`, enter an anonymized tenant alias (for example `school-a`), a role (for example `Administrator`) and an actor alias (for example `admin-1`). Use the same scenario ID but a distinct role or actor alias on each tester's machine. Record and review each session independently.
+
+In Studio, open **Multi-actor scenarios** and import every participant's exported session JSON. By default, only one tenant's evidence is shown at a time; any other tenant comparison requires a separate affirmative confirmation. This phase does not sync between PCs, create application accounts, or verify security permissions automatically. You can try fictional multi-role evidence without installing an extension via **Try fictional multi-actor example**.
+
+See [TraceCue 0.6 release notes](RELEASE_0_6.md).
 
 ## What the browser permissions mean
 
