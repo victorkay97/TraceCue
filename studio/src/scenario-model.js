@@ -73,3 +73,19 @@ export function replaceOrAddReport(reports,report,max=24){
   next.push(report);
   return next;
 }
+
+export function normalizeScenarioInput(input){
+  const x=input&&typeof input==="object"?input:{};
+  const limited=(value,max)=>String(value||"").trim().slice(0,max)
+    .replace(/Bearer\s+\S+/gi,"[REDACTED]")
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,"[EMAIL]")
+    .replace(/(?:password|token|secret|api[_-]?key)\s*[:=]\s*\S+/gi,"[REDACTED]");
+  const context={
+    scenarioId:limited(x.scenarioId,48).toLowerCase(),
+    tenantAlias:limited(x.tenantAlias,48).toLowerCase(),
+    actorRole:limited(x.actorRole,50),
+    actorAlias:limited(x.actorAlias,60)
+  };
+  sessionContext({testContext:context});
+  return context;
+}
