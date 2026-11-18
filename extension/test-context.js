@@ -25,3 +25,16 @@ export function contextLabel(context){
   if(!context)return "Unassigned standalone QA session";
   return [context.scenarioId,context.tenantAlias,context.actorRole,context.actorAlias].join(" · ");
 }
+
+
+// Numeric suffix retains compatibility with legacy durable IndexedDB keys
+// while preventing same-millisecond collisions between different computers.
+export function newRecordingId({now=Date.now(),random=globalThis.crypto}={}){
+  if(!Number.isSafeInteger(now)||now<10000000000||String(now).length!==13)
+    throw Error("Invalid recording timestamp");
+  if(!random||typeof random.getRandomValues!=="function")
+    throw Error("Secure random generator unavailable");
+  const values=new Uint32Array(1);
+  random.getRandomValues(values);
+  return "tc-"+now+String(values[0]%10000000).padStart(7,"0");
+}

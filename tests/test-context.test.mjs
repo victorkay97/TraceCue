@@ -19,3 +19,13 @@ test("reject missing tenant IDs, scenario IDs and secret-like identifiers",()=>{
  assert.equal(normalizeTestContext({scenarioId:"run-01",tenantAlias:"tenant-x",
   actorRole:"Student",actorAlias:"user@example.com"}).actorAlias,"[EMAIL]");
 });
+
+test("randomized numeric IDs prevent collisions on different machines in the same millisecond",async()=>{
+ const {newRecordingId}=await import("../extension/test-context.js");
+ const now=1795000000000;
+ const a=newRecordingId({now,random:{getRandomValues:x=>(x[0]=123456,x)}});
+ const b=newRecordingId({now,random:{getRandomValues:x=>(x[0]=654321,x)}});
+ assert.match(a,/^tc-[0-9]{20}$/);
+ assert.notEqual(a,b);
+ assert.throws(()=>newRecordingId({now,random:null}),/Secure random/);
+});

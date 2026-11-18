@@ -1,4 +1,4 @@
-import {normalizeTestContext} from "./test-context.js";
+import {normalizeTestContext,newRecordingId} from "./test-context.js";
 import { classifyDiagnostic, safeEvidenceUrl, redactDiagnosticText } from "./diagnostics.js";
 // TraceCue service worker. Captures a single user-selected HTTP(S) tab.
 // This is not a background browsing monitor. No content or telemetry is uploaded.
@@ -99,7 +99,7 @@ async function start(tab, suppliedStreamId=null, captureInfoLogs=false, testCont
     return;
   }
   session = {
-    id:"tc-" + Date.now(),tabId:tab.id,title:scrub(tab.title,160),
+    id:newRecordingId(),tabId:tab.id,title:scrub(tab.title,160),
     url:cleanUrl(tab.url),startedAt:Date.now(),events:[],droppedEvents:0,
     environment:{userAgent:navigator.userAgent,platform:navigator.platform || "unknown"},
     video:false,videoStartedAt:null,attached:false,captureInfoLogs:captureInfoLogs===true,testContext,requests:new Map(),contexts:new Map()
