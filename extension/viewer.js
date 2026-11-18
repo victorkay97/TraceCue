@@ -1,5 +1,6 @@
 import { redactDiagnosticText, safeEvidenceUrl } from "./diagnostics.js";
 import {setupClipViewer} from "./clip-viewer.js";
+import {contextLabel} from "./test-context.js";
 import {newHandoffToken,studioTarget,transferTarget,MAX_HANDOFF_VIDEO_BYTES} from "./studio-handoff.js";
 // Local extension session viewer. Never fetches from remote hosts.
 const $ = id => document.getElementById(id);
@@ -18,7 +19,8 @@ if(report.recovered){
     "Interrupted session: recording may be partial. Verify all captured evidence before sharing.";
 }
 $("meta").textContent = new Date(report.startedAt).toLocaleString() + " · " +
-  report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s";
+  report.url + " · " + Math.round((report.stoppedAt-report.startedAt)/1000) + "s" +
+  (report.testContext?" · "+contextLabel(report.testContext):"");
 // Legacy sessions may have stored warning-level entries under console-error.
 const normalizedKind = event => {
   if (event.kind === "environment-diagnostic" ||
@@ -200,6 +202,12 @@ $("saveMarkdown").addEventListener("click",() => {
     "**Tested page:** " + (safeReport.title || "Unknown page"),
     "**Tested origin:** " + safeReport.url,
     "**Recorded:** " + new Date(safeReport.startedAt).toISOString(),"",
+    ...(safeReport.testContext?[
+      "**Test scenario:** "+safeReport.testContext.scenarioId,
+      "**Tenant alias:** "+safeReport.testContext.tenantAlias,
+      "**Actor role:** "+safeReport.testContext.actorRole,
+      "**Actor alias:** "+safeReport.testContext.actorAlias,""
+    ]:[]),
     "## Expected and actual behaviour","",safeReport.testerNotes || "(Add tester notes)","",
     "## Evidence timeline","",
     ...safeReport.events.map(e=>"- +" + ((e.at-safeReport.startedAt)/1000).toFixed(1) + "s — " +
