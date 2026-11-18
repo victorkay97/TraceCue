@@ -202,7 +202,7 @@ export function mountScenarioWorkspace(root,{validateReport,onInspect,saveText,g
       selectedScenario=ctx.scenarioId;selectedTenant=ctx.tenantAlias;crossTenant=false;
       addReport(current);
       $("scenarioStatus").textContent="Current session assigned to "+ctx.scenarioId+" / "+ctx.tenantAlias+
-        " for local comparison. To share these labels, export an updated session from its own reviewer.";
+        " for local comparison. These labels remain local to this Studio browser until you explicitly export a scenario summary.";
     }catch(error){$("scenarioStatus").textContent="Labels not saved: "+error.message;}
   });
   $("scenarioPicker").addEventListener("change",()=>{

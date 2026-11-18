@@ -14,6 +14,7 @@ import {createFrameAnnotator} from "./frame-annotator.js";
 import {initStudioOnboarding} from "./onboarding.js";
 import {initExtensionHandoff} from "./extension-handoff.js";
 import {checkLocalModelAvailability,localReadinessLabel} from "./ai-readiness.js";
+import {mountScenarioWorkspace} from "./scenario-workspace.js";
 
 let session = null;
 let analysis = null;
@@ -29,6 +30,7 @@ app.innerHTML = [
     '<div class="side-group">WORKSPACE</div>',
     '<a href="#overview" class="nav selected">◫ &nbsp; Overview</a>',
     '<a href="#evidence" class="nav">▤ &nbsp; Evidence timeline</a>',
+    '<a href="#scenarios" class="nav">♧ &nbsp; Multi-actor scenarios</a>',
     '<a href="#intelligence" class="nav">✦ &nbsp; Intelligence</a>',
     '<button id="showGuide" type="button" class="nav nav-guide">? &nbsp; First-use guide</button>',
     '<a href="/" class="nav nav-home">↖ &nbsp; Back to website</a>',
@@ -39,6 +41,7 @@ app.innerHTML = [
     '<main>',
       '<section class="hero" id="overview"><div><span class="eyebrow">TRACE EVERY DEFECT</span><h1>Understand what happened.<br><em>Not what was remembered.</em></h1><p>Bring a browser testing session into TraceCue. Review the evidence locally, then decide whether an AI-assisted investigation is useful.</p><p class="demo-label">Public demo is fictional and does not represent an actual customer defect.</p></div><div class="hero-actions"><button id="loadDemo" class="demo-button">Try fictional demo</button><label class="upload">↑ &nbsp; Import session JSON<input type="file" id="file" accept="application/json,.json" hidden></label></div></section>',
       '<section class="metrics"><div class="metric"><small>Event occurrences</small><b id="events">—</b><span>From imported session</span></div><div class="metric"><small>Failures</small><b id="errors">—</b><span>Exceptions and failed requests</span></div><div class="metric"><small>Warnings</small><b id="warnings">—</b><span>Potentially noncritical diagnostics</span></div><div class="metric"><small>Environment</small><b id="environment">—</b><span>Possible extension-related messages</span></div><div class="metric"><small>Interactions</small><b id="actions">—</b><span>User actions</span></div><div class="metric"><small>Duration</small><b id="duration">—</b><span>Seconds captured</span></div></section>',
+      '<section id="scenarios" class="panel qa-scenario-panel" aria-label="Multi-actor scenario comparison"></section>',
       '<section id="queryWorkspace" class="panel qa-query-panel" aria-label="Ask TraceCue evidence interrogation"></section>',
       '<div class="two">',
         '<section class="panel" id="evidence"><div class="panel-head"><div><span class="eyebrow">CAPTURED SESSION</span><h2>Evidence timeline</h2></div><span class="badge" id="sessionBadge">No session imported</span></div>',
@@ -98,6 +101,13 @@ const qaWorkspace=mountQaWorkspace($("queryWorkspace"),{
   onSelect:()=>{if(session)syncPrompt();}
 });
 const selectedReport=()=>scopedEvidence(session,qaWorkspace.getMarkerId()).report;
+const scenarioWorkspace=mountScenarioWorkspace($("scenarios"),{
+  validateReport,saveText,getCurrentReport:()=>session,
+  onInspect:report=>{
+    applyReport(report);
+    $("evidence").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+});
 
 function evidenceRef(index){return "EV"+String(index+1).padStart(4,"0");}
 function focusEvidence(id){
@@ -189,6 +199,7 @@ function applyReport(data){
     videoInspector.configure(data);
     annotator.clear();
     qaWorkspace.refresh();
+    scenarioWorkspace.addReport(data);
     const s=summarize(data);
     $("events").textContent=s.events;
     $("errors").textContent=s.errors;
