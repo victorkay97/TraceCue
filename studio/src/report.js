@@ -1,3 +1,4 @@
+import {sessionContext} from "./scenario-model.js";
 // Data minimization deliberately occurs before any Firebase prompt is built.
 // Imported report JSON is untrusted. Avoid evaluating or injecting its text as HTML.
 const allowed = new Set(["click","submit","change","page-ready","network-failure","network-response","console-error","console-warning","console-info","console-debug","console-exception","environment-diagnostic","warning","issue-marker","capture-started","capture-stopped"]);
@@ -19,6 +20,7 @@ export function validateReport(input) {
   if (!Number.isFinite(input.startedAt) || !Number.isFinite(input.stoppedAt) ||
       input.stoppedAt < input.startedAt) throw new Error("Invalid session timestamps.");
   if (typeof input.id !== "string" || input.id.length > 120) throw new Error("Invalid session identifier.");
+  if(input.testContext!==undefined && input.testContext!==null)sessionContext(input);
   for (const event of input.events) {
     if (!event || !allowed.has(event.kind) || !Number.isFinite(event.at))
       throw new Error("Unsupported event found in the session.");

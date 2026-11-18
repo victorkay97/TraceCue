@@ -147,7 +147,8 @@ export function mountScenarioWorkspace(root,{validateReport,onInspect,saveText,g
         reports=replaceOrAddReport(reports,report);
         count++;
       }
-      const last=items.at(-1),ctx=last?sessionContext(last):null;
+      const first=items.find(item=>sessionContext(item));
+      const ctx=first?sessionContext(first):null;
       if(ctx && !selectedScenario){
         selectedScenario=ctx.scenarioId;selectedTenant=ctx.tenantAlias;
       }

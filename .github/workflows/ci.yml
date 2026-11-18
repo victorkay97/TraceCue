@@ -31,6 +31,9 @@ jobs:
           node --check studio/src/extension-handoff.js
           node --check studio/src/onboarding.js
           node --check studio/src/ai-readiness.js
+          node --check extension/test-context.js
+          node --check studio/src/scenario-model.js
+          node --check studio/src/scenario-workspace.js
           node --check studio/src/landing.js
           node --check studio/src/issue-scope.js
           node --check studio/src/qa-query.js

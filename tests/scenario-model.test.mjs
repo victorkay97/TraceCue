@@ -48,3 +48,20 @@ test("reimports replace same session, invalid labels and arbitrary overcapacity 
  assert.throws(()=>sessionContext({...admin,testContext:{scenarioId:"../../other"}}),/invalid/);
  assert.throws(()=>replaceOrAddReport([admin],student,1),/limit/);
 });
+
+test("the real fictional multi-actor fixture contains separate tenants and real schema shape",async()=>{
+ const {readFileSync}=await import("node:fs");
+ const {validateReport}=await import("../studio/src/report.js");
+ const raw=JSON.parse(readFileSync(new URL("../studio/public/demo-multi-actor.json",import.meta.url),"utf8"));
+ assert.equal(raw.schema,"tracecue-multi-actor-fixture-v1");
+ assert.equal(raw.sessions.length,4);
+ const reports=raw.sessions.map(validateReport);
+ assert.deepEqual(tenantsForScenario(reports,"enrollment-demo-01"),["school-a","school-b"]);
+ const visible=scenarioSummary(reports,{scenarioId:"enrollment-demo-01",tenantAlias:"school-a"});
+ assert.equal(visible.sessionCount,3);
+ assert.equal(visible.records.some(r=>r.tenantAlias==="school-b"),false);
+});
+test("report import rejects malformed scenario roles before data is added",async()=>{
+ const {validateReport}=await import("../studio/src/report.js");
+ assert.throws(()=>validateReport({...admin,testContext:{scenarioId:"bad",tenantAlias:"school-a"}}),/invalid/);
+});
