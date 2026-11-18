@@ -1,3 +1,4 @@
+import {normalizeTestContext} from "./test-context.js";
 import { classifyDiagnostic, safeEvidenceUrl, redactDiagnosticText } from "./diagnostics.js";
 // TraceCue service worker. Captures a single user-selected HTTP(S) tab.
 // This is not a background browsing monitor. No content or telemetry is uploaded.
@@ -91,7 +92,7 @@ async function restoreCompanionIfSafe(tabId,originalUrl){
     await chrome.scripting.executeScript({target:{tabId},files:["companion.js"]});
   }catch{ /* A closed or redirected tab must not be reinjected. */ }
 }
-async function start(tab, suppliedStreamId=null, captureInfoLogs=false) {
+async function start(tab, suppliedStreamId=null, captureInfoLogs=false, testContext=null) {
   if (session) return;
   if (!tab?.id || !/^https?:\/\//.test(tab.url || "")) {
     console.warn("TraceCue supports user-authorized HTTP(S) tabs only.");
@@ -101,7 +102,7 @@ async function start(tab, suppliedStreamId=null, captureInfoLogs=false) {
     id:"tc-" + Date.now(),tabId:tab.id,title:scrub(tab.title,160),
     url:cleanUrl(tab.url),startedAt:Date.now(),events:[],droppedEvents:0,
     environment:{userAgent:navigator.userAgent,platform:navigator.platform || "unknown"},
-    video:false,videoStartedAt:null,attached:false,captureInfoLogs:captureInfoLogs===true,requests:new Map(),contexts:new Map()
+    video:false,videoStartedAt:null,attached:false,captureInfoLogs:captureInfoLogs===true,testContext,requests:new Map(),contexts:new Map()
   };
   await persist();
   try{
@@ -184,6 +185,7 @@ async function stop() {
     startedAt:current.startedAt,stoppedAt:Date.now(),environment:current.environment,
     videoStored,videoStartedAt:current.videoStartedAt,droppedEvents:current.droppedEvents,
     verboseConsoleCaptured:current.captureInfoLogs===true,
+    testContext:current.testContext||null,
     events:current.events.map(({signature,...event}) => event)
   };
   await chrome.storage.local.set({["report:" + report.id]:report,lastReportId:report.id});
@@ -254,7 +256,7 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
         schema:"tracecue-session-v1",id,title:draft.title||"Recovered QA session",
         url:draft.url||"",startedAt:draft.startedAt,
         stoppedAt:Math.max(draft.startedAt,draft.checkpointAt||Date.now()),
-        environment:draft.environment||{},
+        environment:draft.environment||{},testContext:draft.testContext||null,
         videoStored:outcome?.ok===true,videoStartedAt:draft.videoStartedAt||null,
         droppedEvents:draft.droppedEvents||0,recovered:true,
         recoveryNotice:outcome?.ok?
@@ -292,6 +294,7 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
         })): [];
       return {
         ok:true,recording:!!session,activeOnTab,suggestions,captureInfoLogs:session?.captureInfoLogs===true,
+        testContext:activeOnTab?session.testContext||null:null,
         startedAt:activeOnTab?session.startedAt:null,tabId:session?.tabId??null,
         markers:activeOnTab ? session.events.filter(e=>e.kind==="issue-marker").slice(-40)
           .map(({markerId,title,lookbackSeconds,postBufferSeconds,at})=>({markerId,title,lookbackSeconds,postBufferSeconds,at})): []
@@ -300,7 +303,7 @@ chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
     if(msg.action==="start"){
       if(!tab || !/^https?:\/\//.test(tab.url||""))return {ok:false,error:"Choose an authorized website tab"};
       if(session)return {ok:false,error:"Another recording is already active"};
-      return start(tab,typeof msg.streamId==="string"?msg.streamId:null,msg.captureInfoLogs===true);
+      return start(tab,typeof msg.streamId==="string"?msg.streamId:null,msg.captureInfoLogs===true,normalizeTestContext(msg.testContext));
     }
     if(msg.action==="stop"){
       if(!session || session.tabId!==tab?.id)return {ok:false,error:"No active recording for this tab"};

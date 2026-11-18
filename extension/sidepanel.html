@@ -3,6 +3,14 @@
 <ol><li>Use only a website you are permitted to test.</li><li>Click Start recording inside the sidebar.</li><li>Give each bug a title, choose its time range, and save a marker.</li><li>Click Stop &amp; review to inspect the full session, videos and logs.</li><li>Use Continue in Studio from the review page; confirm the transfer there.</li></ol>
 <p>Recording stays off until you press Start. Cloud AI is a separate, consent-based action.</p>
 </details>
+<details class="test-scenario-fields" id="testScenarioSetup">
+<summary>Multi-actor scenario <span>Optional</span></summary>
+<p>Testing an app with multiple roles or organizations? Add safe labels so separately recorded sessions can be reviewed together in Studio. Do not enter real usernames, emails, passwords or tenant secrets.</p>
+<label for="scenarioId">Shared scenario ID</label><input id="scenarioId" maxlength="48" placeholder="e.g. enrollment-run-01" spellcheck="false" autocomplete="off">
+<label for="tenantAlias">Tenant alias</label><input id="tenantAlias" maxlength="48" placeholder="e.g. school-a (not a real tenant ID)" spellcheck="false" autocomplete="off">
+<div class="scenario-two"><div><label for="actorRole">Role</label><input id="actorRole" maxlength="50" placeholder="e.g. Administrator" autocomplete="off"></div><div><label for="actorAlias">Actor alias</label><input id="actorAlias" maxlength="60" placeholder="e.g. admin-1" autocomplete="off"></div></div>
+<p class="scenario-hint">Use the same scenario ID on different computers. Import each resulting JSON in Studio to compare the reviewed evidence locally. This does not sync data across computers.</p>
+<p id="scenarioStatus" class="scenario-status" role="status">Standalone session unless a scenario is specified.</p></details>
 <section class="card"><span class="eyebrow">SESSION CONTROLS</span><div class="actions"><button id="start" class="primary">● Start recording</button><button id="stop" class="danger" disabled>■ Stop & review</button></div><label class="privacy-log-toggle"><input type="checkbox" id="captureInfoLogs"> Include console.log/info/debug (off by default; messages may contain private data)</label>
 <p id="message" role="status" aria-live="polite">Open an HTTP(S) tab you are authorized to test.</p></section><section class="card"><span class="eyebrow">ISSUE MARKER</span><label for="issueTitle">Issue title</label><input id="issueTitle" maxlength="100" placeholder="e.g. Checkout button freezes"><label for="lookback">Capture previous</label><div class="lookback"><button data-seconds="15">15s</button><button data-seconds="30" class="selected">30s</button><button data-seconds="60">60s</button><button data-seconds="120">2m</button></div><label for="postBuffer">Include after marker</label><div class="lookback" id="postBuffer" role="group" aria-label="Post-marker seconds">
 <button data-post="0">0s</button><button data-post="5" class="selected">+5s</button><button data-post="10">+10s</button></div>

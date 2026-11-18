@@ -1,3 +1,4 @@
+import {normalizeTestContext,contextLabel} from "./test-context.js";
 const $=id=>document.getElementById(id);
 let tabId=Number(new URLSearchParams(location.search).get("tab"))||null;
 let seconds=30;
@@ -75,6 +76,13 @@ async function refresh(){
   $("stop").disabled=!recording;$("mark").disabled=!recording;
   $("timer").textContent=clock(recording?Date.now()-info.startedAt:0);
   $("captureInfoLogs").disabled=!!info?.recording;
+  for(const field of ["scenarioId","tenantAlias","actorRole","actorAlias"])
+    $(field).disabled=!!info?.recording;
+  if(recording&&info.testContext){
+    $("scenarioStatus").textContent="Active: "+contextLabel(info.testContext);
+  }else if(!info?.recording){
+    $("scenarioStatus").textContent="Standalone session unless a scenario is specified.";
+  }
   renderSuggestions(info?.suggestions||[]);
   renderIssueHistory(info?.markers||[],info?.startedAt??null);
 }
@@ -90,9 +98,14 @@ $("start").addEventListener("click",async()=>{
   try{
     const tab=tabId?{id:tabId}:await resolveTab();
     if(!tab)throw Error("Select an authorized website tab");
-    $("message").textContent="Starting tab capture…";
+    const testContext=normalizeTestContext({
+      scenarioId:$("scenarioId").value,tenantAlias:$("tenantAlias").value,
+      actorRole:$("actorRole").value,actorAlias:$("actorAlias").value
+    });
+    $("message").textContent=testContext?
+      "Starting recording for "+contextLabel(testContext)+"…":"Starting standalone tab capture…";
     const streamId=await chrome.tabCapture.getMediaStreamId({targetTabId:tab.id});
-    const result=await send("start",{streamId,captureInfoLogs:$("captureInfoLogs").checked});
+    const result=await send("start",{streamId,captureInfoLogs:$("captureInfoLogs").checked,testContext});
     if(!result?.ok)throw Error(result?.error||"Could not start");
     $("message").textContent="Recording continuously. Mark issues without stopping.";
   }catch(e){$("message").textContent="Start failed: "+e.message;}
