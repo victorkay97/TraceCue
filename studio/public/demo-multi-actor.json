@@ -1,0 +1,195 @@
+{
+  "schema": "tracecue-multi-actor-fixture-v1",
+  "description": "Entirely fictional educational QA scenario. No actual accounts, credentials or videos.",
+  "sessions": [
+    {
+      "schema": "tracecue-session-v1",
+      "id": "tc-1763452800001",
+      "title": "FICTIONAL: Administrator creates enrollment",
+      "url": "https://example.test/fictional-school-portal",
+      "startedAt": 1794988800000,
+      "stoppedAt": 1794988820000,
+      "videoStartedAt": 1794988800000,
+      "videoStored": false,
+      "environment": {
+        "platform": "Fictional QA environment",
+        "userAgent": "TraceCue Demo"
+      },
+      "testContext": {
+        "scenarioId": "enrollment-demo-01",
+        "tenantAlias": "school-a",
+        "actorRole": "Administrator",
+        "actorAlias": "admin-1"
+      },
+      "events": [
+        {
+          "kind": "capture-started",
+          "at": 1794988801000
+        },
+        {
+          "kind": "click",
+          "at": 1794988804000,
+          "element": "testid:create-student"
+        },
+        {
+          "kind": "network-response",
+          "at": 1794988805500,
+          "method": "POST",
+          "status": 201,
+          "url": "https://example.test/api/fictional-students"
+        },
+        {
+          "kind": "issue-marker",
+          "at": 1794988807000,
+          "markerId": "m-fake-admin-01",
+          "title": "Enrollment created for the fictional student",
+          "lookbackSeconds": 5,
+          "postBufferSeconds": 0
+        },
+        {
+          "kind": "capture-stopped",
+          "at": 1794988813000
+        }
+      ]
+    },
+    {
+      "schema": "tracecue-session-v1",
+      "id": "tc-1763452800002",
+      "title": "FICTIONAL: Student cannot access enrollment",
+      "url": "https://example.test/fictional-school-portal",
+      "startedAt": 1794988925000,
+      "stoppedAt": 1794988945000,
+      "videoStartedAt": 1794988925000,
+      "videoStored": false,
+      "environment": {
+        "platform": "Fictional QA environment",
+        "userAgent": "TraceCue Demo"
+      },
+      "testContext": {
+        "scenarioId": "enrollment-demo-01",
+        "tenantAlias": "school-a",
+        "actorRole": "Student",
+        "actorAlias": "student-1"
+      },
+      "events": [
+        {
+          "kind": "capture-started",
+          "at": 1794988926000
+        },
+        {
+          "kind": "click",
+          "at": 1794988928000,
+          "element": "testid:sign-in"
+        },
+        {
+          "kind": "network-failure",
+          "at": 1794988930500,
+          "method": "GET",
+          "status": 500,
+          "url": "https://example.test/api/fictional-enrollment"
+        },
+        {
+          "kind": "console-error",
+          "at": 1794988930800,
+          "message": "Fictional enrollment endpoint returned 500"
+        },
+        {
+          "kind": "issue-marker",
+          "at": 1794988934000,
+          "markerId": "m-fake-student-01",
+          "title": "Student enrollment could not be loaded",
+          "lookbackSeconds": 8,
+          "postBufferSeconds": 5
+        },
+        {
+          "kind": "capture-stopped",
+          "at": 1794988942000
+        }
+      ]
+    },
+    {
+      "schema": "tracecue-session-v1",
+      "id": "tc-1763452800003",
+      "title": "FICTIONAL: Lecturer reviews enrollment",
+      "url": "https://example.test/fictional-school-portal",
+      "startedAt": 1794989060000,
+      "stoppedAt": 1794989080000,
+      "videoStartedAt": 1794989060000,
+      "videoStored": false,
+      "environment": {
+        "platform": "Fictional QA environment",
+        "userAgent": "TraceCue Demo"
+      },
+      "testContext": {
+        "scenarioId": "enrollment-demo-01",
+        "tenantAlias": "school-a",
+        "actorRole": "Lecturer",
+        "actorAlias": "lecturer-1"
+      },
+      "events": [
+        {
+          "kind": "capture-started",
+          "at": 1794989061000
+        },
+        {
+          "kind": "click",
+          "at": 1794989063500,
+          "element": "testid:enrollment-list"
+        },
+        {
+          "kind": "network-response",
+          "at": 1794989065100,
+          "method": "GET",
+          "status": 200,
+          "url": "https://example.test/api/fictional-enrollment"
+        },
+        {
+          "kind": "capture-stopped",
+          "at": 1794989067000
+        }
+      ]
+    },
+    {
+      "schema": "tracecue-session-v1",
+      "id": "tc-1763452800004",
+      "title": "FICTIONAL: Cross-tenant access denied",
+      "url": "https://example.test/fictional-school-portal",
+      "startedAt": 1794989200000,
+      "stoppedAt": 1794989220000,
+      "videoStartedAt": 1794989200000,
+      "videoStored": false,
+      "environment": {
+        "platform": "Fictional QA environment",
+        "userAgent": "TraceCue Demo"
+      },
+      "testContext": {
+        "scenarioId": "enrollment-demo-01",
+        "tenantAlias": "school-b",
+        "actorRole": "Student",
+        "actorAlias": "student-b"
+      },
+      "events": [
+        {
+          "kind": "capture-started",
+          "at": 1794989201000
+        },
+        {
+          "kind": "click",
+          "at": 1794989203000,
+          "element": "testid:other-school-record"
+        },
+        {
+          "kind": "network-failure",
+          "at": 1794989205000,
+          "method": "GET",
+          "status": 403,
+          "url": "https://example.test/api/fictional-other-school"
+        },
+        {
+          "kind": "capture-stopped",
+          "at": 1794989207000
+        }
+      ]
+    }
+  ]
+}
