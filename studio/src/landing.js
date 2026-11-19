@@ -91,7 +91,7 @@ function showFeature(index,{focus=false}={}){
   const track=Math.max(1,showcase.offsetHeight-pinned.offsetHeight);
   const top=showcase.getBoundingClientRect().top+window.scrollY;
   // Direct jump avoids racing through the other three stages on click.
-  window.scrollTo({top:Math.max(0,top-stickyTop+track*((index+.5)/order.length)),behavior:"instant"});
+  window.scrollTo({top:Math.max(0,top-stickyTop+track*((index+.5)/order.length)),behavior:"auto"});
  }
  selectFeature(next,{focus});
 }
@@ -190,12 +190,4 @@ fetch("/demo-session.json",{cache:"force-cache"}).then(async response=>{
   renderSearch(field.value);
 }).catch(()=>renderSearch(field.value));
 
-if("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-  const sections=Array.from(root.querySelectorAll(".statement,.showcase,.steps-section,.sandbox,.privacy,.install"));
-  const observer=new IntersectionObserver(entries=>{
-    for(const entry of entries)if(entry.isIntersecting){
-      entry.target.classList.add("in-view");observer.unobserve(entry.target);
-    }
-  },{threshold:.06,rootMargin:"0px 0px -24px 0px"});
-  sections.forEach(section=>{section.classList.add("will-reveal");observer.observe(section);});
-}
+// Sections stay visible without scroll-dependent reveal gating.
