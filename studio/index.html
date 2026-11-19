@@ -21,6 +21,7 @@
  <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
  <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.4"/><path d="m16 16 5 5"/></symbol>
  <symbol id="icon-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+ <symbol id="icon-pause" viewBox="0 0 24 24"><path d="M8 5v14m8-14v14"/></symbol>
  <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
  <symbol id="icon-record" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/></symbol>
  <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M5 21V5m0 0c5-4 9 4 15 0v11c-6 4-10-4-15 0"/></symbol>
@@ -94,7 +95,7 @@
          </div>
         </div>
         <div class="player-controls">
-         <span class="player-play" aria-hidden="true"><svg class="icon"><use href="#icon-play"/></svg></span>
+         <button class="player-play" id="hero-preview-play" type="button" aria-label="Play fictional event timeline" aria-pressed="false"><svg class="icon"><use href="#icon-play"/></svg></button>
          <span class="player-time" id="hero-player-time">00:06.3</span>
          <div class="player-track"><span id="hero-track-progress"></span><i class="track-issue-a"></i><i class="track-issue-b"></i></div>
          <span class="player-time">00:20</span>
