@@ -76,23 +76,76 @@ function selectFeature(name,{focus=false}={}){
   stage.innerHTML=item.html; // All four templates are authored constants, never user-provided.
   requestAnimationFrame(()=>{if(sequence===stageSequence)stage.classList.add("stage-entered");});
 }
+const showcase=root.querySelector("#what-it-does");
+const pinned=showcase?.querySelector(".showcase-sticky");
+const order=["capture","mark","search","report"];
+const canScrollFeatures=()=>window.innerWidth>760&&
+ !window.matchMedia("(prefers-reduced-motion: reduce)").matches&&pinned;
+let activeFeature="capture";
+const originalSelectFeature=selectFeature;
+selectFeature=(name,options={})=>{activeFeature=name;originalSelectFeature(name,options);};
+function showFeature(index,{focus=false}={}){
+ const next=order[Math.max(0,Math.min(order.length-1,index))];
+ if(canScrollFeatures()){
+  const stickyTop=parseFloat(getComputedStyle(pinned).top)||100;
+  const track=Math.max(1,showcase.offsetHeight-pinned.offsetHeight);
+  const top=showcase.getBoundingClientRect().top+window.scrollY;
+  // Direct jump avoids racing through the other three stages on click.
+  window.scrollTo({top:Math.max(0,top-stickyTop+track*((index+.5)/order.length)),behavior:"instant"});
+ }
+ selectFeature(next,{focus});
+}
 tabs.forEach((tab,index)=>{
-  tab.addEventListener("click",()=>selectFeature(tab.dataset.feature));
-  tab.addEventListener("keydown",event=>{
-    if(!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
-    event.preventDefault();
-    const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:
-      (index+(["ArrowUp","ArrowLeft"].includes(event.key)?-1:1)+tabs.length)%tabs.length;
-    selectFeature(tabs[next].dataset.feature,{focus:true});
-  });
+ tab.addEventListener("click",()=>showFeature(index));
+ tab.addEventListener("keydown",event=>{
+  if(!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+  event.preventDefault();
+  const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:
+    (index+(["ArrowUp","ArrowLeft"].includes(event.key)?-1:1)+tabs.length)%tabs.length;
+  showFeature(next,{focus:true});
+ });
 });
 selectFeature("capture");
+let featureFrame=false;
+function updateFeatureOnScroll(){
+ if(!canScrollFeatures()||!showcase)return;
+ const stickyTop=parseFloat(getComputedStyle(pinned).top)||100;
+ const rect=showcase.getBoundingClientRect();
+ if(rect.bottom<stickyTop||rect.top>window.innerHeight)return;
+ const track=Math.max(1,showcase.offsetHeight-pinned.offsetHeight);
+ const progress=Math.max(0,Math.min(.9999,(stickyTop-rect.top)/track));
+ const index=Math.min(order.length-1,Math.floor(progress*order.length));
+ if(order[index]!==activeFeature)selectFeature(order[index]);
+}
+window.addEventListener("scroll",()=>{
+ if(featureFrame)return;
+ featureFrame=true;
+ requestAnimationFrame(()=>{featureFrame=false;updateFeatureOnScroll();});
+},{passive:true});
+window.addEventListener("resize",updateFeatureOnScroll);
+updateFeatureOnScroll();
 
+const previewDetails={
+ click:{time:"00:06.0",progress:"30%",insight:"The tester clicked Save changes at 00:06.0. TraceCue keeps the UI action so the next event has context."},
+ "500":{time:"00:06.3",progress:"31.5%",insight:"A profile save request returned HTTP 500 at 00:06.3, shortly after the Save changes action."},
+ error:{time:"00:06.5",progress:"32.5%",insight:"A console error followed the failed request at 00:06.5. The report links it to the exact moment."}
+};
 root.querySelectorAll("[data-preview-event]").forEach(button=>button.addEventListener("click",()=>{
-  root.querySelectorAll("[data-preview-event]").forEach(el=>el.classList.toggle("highlighted",el===button));
-  root.querySelector("#hero-player-time").textContent=
-    button.dataset.previewEvent==="click"?"00:06.0":button.dataset.previewEvent==="error"?"00:06.5":"00:06.3";
+ const detail=previewDetails[button.dataset.previewEvent]||previewDetails["500"];
+ root.querySelectorAll("[data-preview-event]").forEach(el=>{
+  const active=el===button;
+  el.classList.toggle("highlighted",active);
+  el.setAttribute("aria-pressed",String(active));
+ });
+ root.querySelector("#hero-player-time").textContent=detail.time;
+ const progress=root.querySelector("#hero-track-progress");
+ if(progress)progress.style.width=detail.progress;
+ const insight=root.querySelector("#hero-evidence-insight");
+ if(insight)insight.textContent=detail.insight;
 }));
+root.querySelectorAll("[data-preview-event]").forEach(button=>
+ button.setAttribute("aria-pressed",String(button.dataset.previewEvent==="500")));
+
 const form=root.querySelector("#sample-search-form");
 const field=root.querySelector("#sample-query");
 const output=root.querySelector("#sample-result-body");
