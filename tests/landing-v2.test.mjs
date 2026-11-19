@@ -21,7 +21,7 @@ test("four feature tabs are keyboard accessible and map to implemented UI states
  const states=["capture","mark","search","report"];
  for(const name of states){
   assert.ok(script.includes(name+":{"),"Missing feature state: "+name);
-  assert.match(script,new RegExp('(^|\\\\s)'+name+':\\\\s*\\\\{'));
+  assert.ok(html.includes('data-feature="'+name+'"'),"Missing feature tab: "+name);
  }
  assert.match(script,/ArrowRight/);
  assert.match(script,/aria-selected/);
