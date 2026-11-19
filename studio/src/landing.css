@@ -800,3 +800,9 @@ h1,h2,h3,.wordmark,.giant-wordmark,.footer-top strong{font-family:var(--font-dis
  .showcase-sticky{scroll-behavior:auto}
  .player-track span{transition:none}
 }
+
+/* Functional, keyboard-accessible timeline playback control. */
+.player-play{display:inline-grid;place-items:center;width:29px;height:29px;border:1px solid #d9e9db;background:#edf8f0;border-radius:6px;color:#167960;padding:0;flex:0 0 auto;cursor:pointer;transition:background .18s,border-color .18s}
+.player-play .icon{height:15px;width:15px}
+.player-play:hover{background:#dcf0e3;border-color:#b5d9c0}
+.player-play:focus-visible{outline:2px solid #168668;outline-offset:2px}
