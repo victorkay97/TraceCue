@@ -61,9 +61,9 @@ for(const [key,label] of destinations){
 const overlay=document.createElement("div");
 overlay.className="v2-menu-backdrop";overlay.hidden=true;
 shell.append(overlay);
-content.innerHTML='<div class="v2-mobile-bar"><button class="v2-menu-open" type="button" aria-label="Open workspace navigation" aria-controls="v2-navigation" aria-expanded="false">'+icon("menu")+'</button><span>TraceCue Studio</span><span class="v2-mobile-local">Local</span></div><header class="v2-workspace-top"><div class="v2-crumb">TraceCue <span>/</span> <strong id="v2-crumb-title">Overview</strong></div><div class="v2-top-actions"><span class="v2-local-indicator">'+icon("shield")+' Local by default</span><button type="button" id="v2-help" class="v2-quiet-btn">'+icon("help")+' Guide</button><button type="button" id="v2-top-import" class="v2-quiet-btn">'+icon("upload")+' Import JSON</button></div></header>';
+content.innerHTML='<div class="v2-mobile-bar"><button class="v2-menu-open" type="button" aria-label="Open workspace navigation" aria-controls="v2-navigation" aria-expanded="false">'+icon("menu")+'</button><span>TraceCue Studio</span><span class="v2-mobile-local">Local</span></div><div class="v2-workspace-frame"><header class="v2-workspace-top"><div class="v2-crumb">TraceCue <span>/</span> <strong id="v2-crumb-title">Overview</strong></div><div class="v2-top-actions"><span class="v2-local-indicator">'+icon("shield")+' Local by default</span><button type="button" id="v2-help" class="v2-quiet-btn">'+icon("help")+' Guide</button><button type="button" id="v2-top-import" class="v2-quiet-btn">'+icon("upload")+' Import JSON</button></div></header><div class="v2-workspace-body"></div></div>';
 main.className="v2-viewport";
-content.append(main);
+content.querySelector(".v2-workspace-body").append(main);
 
 function view(key,title,description){
  const node=document.createElement("section");
@@ -80,10 +80,68 @@ const views={
  settings:view("settings","Workspace settings","Understand local storage, AI permissions, and this preview.")
 };
 
+/* Playground's Discovery was compact and task-first. Keep that hierarchy,
+   but use truthful TraceCue actions instead of copying API-directory data. */
 const overviewContent=document.createElement("div");
 overviewContent.className="v2-overview-content";
-overviewContent.innerHTML='<div class="v2-start-card"><div class="v2-start-copy"><span class="v2-kicker">START WITH EVIDENCE</span><h2>From a test session to a clear report.</h2><p>Open the fictional example to explore a complete, safe QA workflow. Or import a session captured with TraceCue Companion.</p><div class="v2-start-actions"><button id="v2-try-demo" class="v2-primary-btn" type="button">Explore sample session '+icon("arrow")+'</button><button id="v2-import" class="v2-quiet-btn" type="button">'+icon("upload")+' Import session</button></div></div><div class="v2-start-graphic" aria-hidden="true"><div class="v2-visual-header"><span></span><span></span><span></span></div><div class="v2-visual-row"><span class="v2-visual-dot"></span><div><b>01:06 · Save changes</b><small>Interaction captured</small></div></div><div class="v2-visual-row"><span class="v2-visual-dot is-error"></span><div><b>01:06 · HTTP 500</b><small>Related network failure</small></div></div><div class="v2-visual-line"></div></div></div><div class="v2-section-label">PICK UP WHERE YOU LEFT OFF</div><div class="v2-recent"><div class="v2-recent-icon">'+icon("sessions")+'</div><div class="v2-recent-info"><strong id="v2-session-title">No session loaded</strong><span id="v2-session-sub">Open the sample or import a session to begin.</span></div><button class="v2-link-btn" id="v2-open-session" type="button">Open '+icon("chevron")+'</button></div><div class="v2-section-label">YOUR WORKFLOW</div><div class="v2-quick-grid"><button type="button" data-open-view="sessions"><span>'+icon("sessions")+'</span><strong>Review a session</strong><small>Playback and synchronized timeline</small>'+icon("arrow")+'</button><button type="button" data-open-view="issues"><span>'+icon("issues")+'</span><strong>Find an issue</strong><small>Search and scope the evidence</small>'+icon("arrow")+'</button><button type="button" data-open-view="reports"><span>'+icon("reports")+'</span><strong>Prepare a report</strong><small>Tester checks and GitHub draft</small>'+icon("arrow")+'</button></div>';
+views.overview.querySelector(".v2-view-intro").hidden=true;
+
+const quickCards=[
+ {id:"demo",type:"Sample",label:"Fictional session",title:"Explore a sample session",desc:"See a browser recording, captured events and linked evidence without importing data.",icon:"sessions",status:"Ready to explore",tone:"ready",action:"Explore sample",group:"sessions"},
+ {id:"import",type:"Import",label:"Local JSON",title:"Import a session",desc:"Bring evidence captured with the TraceCue Chrome companion into this browser.",icon:"upload",status:"Stored locally",tone:"ready",action:"Import JSON",group:"sessions"},
+ {id:"review",type:"Review",label:"Session required",title:"Recording & timeline",desc:"Replay a recording, jump to events and inspect the technical evidence.",icon:"sessions",status:"Needs a session",tone:"neutral",action:"Open workspace",group:"sessions",view:"sessions"},
+ {id:"issues",type:"Issues",label:"Session required",title:"Find a captured issue",desc:"Search events and focus the evidence on one particular defect.",icon:"issues",status:"Needs a session",tone:"neutral",action:"Find evidence",group:"issues",view:"issues"},
+ {id:"actors",type:"Scenarios",label:"Advanced",title:"Compare test actors",desc:"Inspect recordings from different roles or tenant contexts side by side.",icon:"overview",status:"Multiple sessions",tone:"neutral",action:"Compare actors",group:"sessions",view:"sessions",tab:"scenarios"},
+ {id:"investigate",type:"Analysis",label:"Opt-in AI",title:"Investigate an issue",desc:"Start with observed events, then review exactly what an AI model would receive.",icon:"investigate",status:"Cloud requires approval",tone:"neutral",action:"Investigate",group:"analysis",view:"investigate"},
+ {id:"reports",type:"Handoff",label:"Human review",title:"Prepare a bug report",desc:"Check reproduction details and make an evidence-linked engineering draft.",icon:"reports",status:"Tester review required",tone:"neutral",action:"Prepare report",group:"handoff",view:"reports"}
+];
+const categories=[
+ ["all","Everything"],["sessions","Sessions"],["issues","Issues"],
+ ["analysis","Analysis"],["handoff","Handoff"]
+];
+overviewContent.innerHTML='<div class="v2-discover-heading"><div class="v2-discover-leading"><span class="v2-discover-badge">Workspace explorer</span><h2>What do you want to investigate?</h2><p>Start with a session, not a wall of controls. Pick a workflow to continue.</p></div><label class="v2-discover-search">'+icon("investigate")+'<input id="v2-workflow-search" type="search" placeholder="Search workflows..." aria-label="Search workflows"></label></div><div class="v2-discover-board"><div class="v2-filter-row" role="group" aria-label="Filter workflows"></div><div class="v2-workflow-grid" id="v2-workflow-grid"></div><p class="v2-workflow-empty" id="v2-workflow-empty" hidden>No workflows match this search. Clear the search or choose Everything.</p></div><div class="v2-session-log"><span>RECENT SESSION</span><div class="v2-recent"><div class="v2-recent-icon">'+icon("sessions")+'</div><div class="v2-recent-info"><strong id="v2-session-title">No session loaded</strong><span id="v2-session-sub">Explore the sample or import a session to begin.</span></div><button class="v2-link-btn" id="v2-open-session" type="button">Open '+icon("chevron")+'</button></div></div>';
 views.overview.append(overviewContent);
+const filterRow=overviewContent.querySelector(".v2-filter-row");
+const grid=overviewContent.querySelector("#v2-workflow-grid");
+const filterSearch=overviewContent.querySelector("#v2-workflow-search");
+let selectedCategory="all";
+for(const [key,label] of categories){
+ const button=document.createElement("button");
+ button.type="button";button.dataset.category=key;button.textContent=label;
+ button.addEventListener("click",()=>{selectedCategory=key;renderWorkflowCards();});
+ filterRow.append(button);
+}
+for(const item of quickCards){
+ const card=document.createElement("article");
+ card.className="v2-workflow-card";
+ card.dataset.category=item.group;
+ card.dataset.search=(item.title+" "+item.desc+" "+item.type+" "+item.label).toLowerCase();
+ card.innerHTML='<div class="v2-workflow-card-top"><span class="v2-workflow-icon">'+icon(item.icon)+'</span><span class="v2-workflow-type">'+item.type+'</span><span class="v2-workflow-tag">'+item.label+'</span></div><div class="v2-workflow-body"><h3>'+item.title+'</h3><p>'+item.desc+'</p></div><div class="v2-workflow-footer '+item.tone+'"><span>'+item.status+'</span><button type="button"'+(item.id==="demo"?' id="v2-try-demo"':item.id==="import"?' id="v2-import"':'')+'>'+item.action+' '+icon("arrow")+'</button></div>';
+ const button=card.querySelector(".v2-workflow-footer button");
+ if(item.view){
+  button.addEventListener("click",()=>{
+   if(item.tab)setSessionTab(item.tab);
+   else if(item.view==="sessions")setSessionTab("recording");
+   setView(item.view);
+  });
+ }
+ grid.append(card);
+}
+function renderWorkflowCards(){
+ const query=filterSearch.value.trim().toLowerCase();
+ let visible=0;
+ for(const card of grid.children){
+  const match=(selectedCategory==="all"||card.dataset.category===selectedCategory)&&card.dataset.search.includes(query);
+  card.hidden=!match;if(match)visible++;
+ }
+ overviewContent.querySelector("#v2-workflow-empty").hidden=visible!==0;
+ for(const button of filterRow.querySelectorAll("button")){
+  const isActive=button.dataset.category===selectedCategory;
+  button.setAttribute("aria-pressed",String(isActive));
+ }
+}
+filterSearch.addEventListener("input",renderWorkflowCards);
+renderWorkflowCards();
 
 const sessionTabs=document.createElement("div");
 sessionTabs.className="v2-tabs";sessionTabs.setAttribute("role","tablist");sessionTabs.setAttribute("aria-label","Session views");
@@ -140,6 +198,7 @@ let active="overview";
 function setView(key){
  if(!views[key])return;
  active=key;
+ content.dataset.screen=key;
  for(const [name,node] of Object.entries(views))node.hidden=name!==key;
  for(const button of nav.querySelectorAll(".v2-nav-button")){
   const selected=button.dataset.view===key;

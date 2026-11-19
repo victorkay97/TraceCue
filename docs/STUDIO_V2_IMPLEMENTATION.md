@@ -31,3 +31,10 @@ The UI does not trigger capture, cloud inference or GitHub posting automatically
 4. Test extension handoff through the V2 URL with actual Chrome authorization; do not claim it works from this source-only pass.
 5. Confirm dark mode legibility across complex nested existing widgets. Dark theme in V2 is a preview and may require another dedicated visual polish pass.
 6. Do not merge V2 into the main Studio route until user acceptance.
+
+
+## Focused fidelity correction (19 November 2026)
+
+The initial V2 took only high-level inspiration from Playground and introduced an oversized generic SaaS Overview. This was insufficient given the 1440x900 computed-CSS audit. The new parity pass implements the audited visual hierarchy: 212px rail, 32px inset workspace panel, 14px radius nested surface, compact 16/24 heading, inline search, 24px filter chips and 3-column 205px-high cards with 16px gaps. The Overview now behaves as a workflow explorer rather than a marketing hero; cards execute real TraceCue actions (load fictional demo, import local JSON, open existing session/evidence/AI/report/scenario views). The UI retains teal branding and does not copy Playground's API data.
+
+This is source-driven implementation; pixel-perfect browser parity is **not yet verified**. Dark mode and the nested legacy forms still require browser review. The original `/app.html` is unchanged. The measured 900px minimum width and inaccessible mobile drawer from Playground were not copied.

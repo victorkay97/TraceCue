@@ -179,3 +179,161 @@
 @media(prefers-reduced-motion:reduce){
  .tc-v2 .side,.tc-v2 .v2-nav-button,.tc-v2 .v2-primary-btn{transition:none!important}
 }
+
+
+/* Measured layout parity pass: Playground /play @ 1440×900.
+   Reference measurements: outer x48 y42 1360×826; sidebar 212px;
+   inset workspace 32px; 14px rounded inner workspace.
+   Keep TraceCue product data, green accent and accessible controls. */
+.tc-v2 .v2-outside-brand{height:42px}
+.tc-v2 .shell{
+ height:calc(100dvh - 74px);
+ margin:0 max(16px,3.333vw) 32px;
+}
+.tc-v2 .side{padding:16px 12px}
+.tc-v2 .v2-side-top{font-size:14px;font-weight:500;color:var(--v-sub)}
+.tc-v2 .v2-navigation{gap:2px}
+.tc-v2 .v2-nav-button{min-height:36px;padding:8px 11px;font-size:12px;border-radius:6px}
+.tc-v2 .v2-nav-button.selected{background:var(--v-pale)}
+.tc-v2 .content{padding:32px;background:var(--v-shell)}
+.tc-v2 .v2-workspace-frame{
+ min-height:0;flex:1;display:flex;flex-direction:column;
+ background:var(--v-panel);border:1px solid var(--v-line);border-radius:14px;
+ overflow:hidden;
+}
+.tc-v2 .v2-workspace-top{
+ height:64px;flex:0 0 64px;min-height:0;
+ padding:0 16px;border:0;background:var(--v-panel);
+}
+.tc-v2 .v2-crumb{font:500 16px/24px "Geist",system-ui,sans-serif;letter-spacing:-.55px}
+.tc-v2 .v2-workspace-body{display:flex;flex-direction:column;min-height:0;flex:1;padding:0 16px 16px}
+.tc-v2 .v2-viewport{
+ padding:16px;flex:1;overflow:auto;min-height:0;
+ width:100%;background:var(--v-card);
+ border-radius:8px;border:1px solid var(--v-line)
+}
+.tc-v2 .content[data-screen="overview"] .v2-top-actions{display:none}
+.tc-v2 .v2-view{max-width:none}
+.tc-v2 #v2-view-overview>.v2-view-intro{display:none}
+.tc-v2 .v2-discover-heading{
+ display:grid;grid-template-columns:minmax(0,1fr) 318px;gap:24px;
+ align-items:center;min-height:104px;margin:0 0 16px;
+}
+.tc-v2 .v2-discover-leading{min-width:0}
+.tc-v2 .v2-discover-badge{
+ display:inline-flex;align-items:center;min-height:26px;
+ padding:4px 10px;background:var(--v-pale);color:var(--v-accent-text);
+ border-radius:6px;font:500 12px/18px "Geist",system-ui,sans-serif;
+}
+.tc-v2 .v2-discover-leading h2{
+ font:500 16px/24px "Geist",system-ui,sans-serif;
+ letter-spacing:-.8px;margin:13px 0 3px;color:var(--v-sub)
+}
+.tc-v2 .v2-discover-leading p{font:400 12px/18px "Geist",system-ui,sans-serif;letter-spacing:-.48px;margin:0;color:var(--v-muted)}
+.tc-v2 .v2-discover-search{
+ display:flex;align-items:center;gap:9px;
+ border-bottom:1px solid var(--v-line);padding:0 0 8px;
+ color:var(--v-muted);cursor:text;
+}
+.tc-v2 .v2-discover-search .v2-icon{width:19px;height:19px}
+.tc-v2 .v2-discover-search input{
+ border:0;outline:0;padding:0;width:100%;min-width:0;
+ font:500 16px/24px "Geist",system-ui,sans-serif;
+ background:transparent;color:var(--v-ink);letter-spacing:-.64px
+}
+.tc-v2 .v2-discover-search:focus-within{border-bottom-color:var(--v-accent)}
+.tc-v2 .v2-discover-search input::placeholder{color:var(--v-muted)}
+.tc-v2 .v2-discover-board{padding:16px;border:1px solid var(--v-line);border-radius:6px}
+.tc-v2 .v2-filter-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.tc-v2 .v2-filter-row button{
+ display:inline-flex;align-items:center;justify-content:center;
+ font:500 12px/18px "Geist",system-ui,sans-serif;
+ padding:2px 8px;min-height:24px;background:var(--v-card);color:var(--v-muted);
+ border:1px solid var(--v-line);border-radius:4px;cursor:pointer
+}
+.tc-v2 .v2-filter-row button[aria-pressed="true"]{background:var(--v-panel);color:var(--v-ink);border-color:transparent}
+.tc-v2 .v2-workflow-grid{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+ align-items:stretch;
+}
+.tc-v2 .v2-workflow-card{
+ display:flex;flex-direction:column;min-width:0;
+ height:205px;padding:12px;border:1px solid var(--v-line);
+ background:var(--v-card);border-radius:5px;
+}
+.tc-v2 .v2-workflow-card[hidden]{display:none!important}
+.tc-v2 .v2-workflow-card-top{display:flex;gap:6px;align-items:center;min-height:41px}
+.tc-v2 .v2-workflow-icon{
+ display:grid;place-items:center;height:37px;width:37px;
+ border-radius:5px;background:var(--v-pale);color:var(--v-accent-text);
+ margin-right:auto
+}
+.tc-v2 .v2-workflow-icon svg{width:20px;height:20px}
+.tc-v2 .v2-workflow-type{font:400 11px/16px "Geist",system-ui,sans-serif;color:var(--v-muted)}
+.tc-v2 .v2-workflow-tag{
+ display:inline-flex;align-items:center;justify-content:center;
+ padding:6px;background:var(--v-panel);border-radius:4px;
+ color:var(--v-sub);font:500 11px/17px "Geist",system-ui,sans-serif
+}
+.tc-v2 .v2-workflow-body{margin-top:10px;flex:1;min-height:0}
+.tc-v2 .v2-workflow-body h3{
+ font:600 16px/24px "Geist",system-ui,sans-serif;
+ letter-spacing:-.8px;color:var(--v-sub);margin:0 0 3px
+}
+.tc-v2 .v2-workflow-body p{font:400 12px/17px "Geist",system-ui,sans-serif;color:var(--v-muted);margin:0}
+.tc-v2 .v2-workflow-footer{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:7px;border-radius:4px;padding:9px 10px;
+ background:var(--v-panel);color:var(--v-sub);
+ font:500 11px/16px "Geist",system-ui,sans-serif
+}
+.tc-v2 .v2-workflow-footer.ready{background:var(--v-pale);color:var(--v-accent-text)}
+.tc-v2 .v2-workflow-footer button{
+ display:flex;align-items:center;gap:3px;
+ border:0;background:transparent;color:inherit;
+ font:600 11px/16px "Geist",system-ui,sans-serif;
+ cursor:pointer;padding:0;white-space:nowrap
+}
+.tc-v2 .v2-workflow-footer .v2-icon{width:12px;height:12px}
+.tc-v2 .v2-workflow-empty{
+ text-align:center;padding:26px 12px;font:400 12px/18px "Geist",sans-serif;color:var(--v-muted)
+}
+.tc-v2 .v2-session-log{padding-top:18px}
+.tc-v2 .v2-session-log>span{font-size:10px;letter-spacing:.08em;color:var(--v-muted)}
+.tc-v2 .v2-recent{padding:10px 12px;margin-top:7px;border-radius:7px}
+.tc-v2 .v2-recent-icon{height:30px;width:30px}
+.tc-v2 .v2-recent-info strong{font-size:12px}
+.tc-v2 .v2-recent-info span{font-size:11px}
+.tc-v2 .v2-link-btn{min-height:28px;font-size:11px;padding:5px 9px}
+@media(max-width:1199px){
+ .tc-v2 .content{padding:20px}
+ .tc-v2 .v2-discover-heading{grid-template-columns:minmax(0,1fr) minmax(170px,30%)}
+}
+@media(max-width:1000px){
+ .tc-v2 .v2-workflow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tc-v2 .content{padding:16px}
+ .tc-v2 .v2-workspace-top{padding:0 14px}
+}
+@media(max-width:800px){
+ .tc-v2 .v2-outside-brand{height:42px}
+ .tc-v2 .shell{height:calc(100dvh - 54px);margin:0 12px 12px}
+ .tc-v2 .content{padding:10px}
+ .tc-v2 .v2-workspace-frame{border-radius:10px}
+ .tc-v2 .v2-workspace-top{height:46px;flex-basis:46px;padding:0 12px}
+ .tc-v2 .v2-crumb{font-size:13px}
+ .tc-v2 .v2-workspace-body{padding:0 8px 8px}
+ .tc-v2 .v2-viewport{padding:12px}
+ .tc-v2 .v2-discover-heading{grid-template-columns:1fr;gap:14px;margin-bottom:15px}
+ .tc-v2 .v2-discover-search{max-width:none}
+}
+@media(max-width:560px){
+ .tc-v2 .shell{margin:0 6px 8px;height:calc(100dvh - 50px)}
+ .tc-v2 .content{padding:6px}
+ .tc-v2 .v2-workspace-body{padding:0 6px 6px}
+ .tc-v2 .v2-viewport{padding:12px 9px}
+ .tc-v2 .v2-workflow-grid{grid-template-columns:1fr;gap:10px}
+ .tc-v2 .v2-workflow-card{height:auto;min-height:190px}
+ .tc-v2 .v2-discover-board{padding:10px}
+ .tc-v2 .v2-filter-row{gap:5px}
+ .tc-v2 .v2-workflow-footer{padding:8px}
+}

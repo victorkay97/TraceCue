@@ -26,3 +26,16 @@ test("Studio V2 isolates tasks and retains consent and demo import",()=>{
  assert.match(css,/focus-visible/);
  assert.match(css,/prefers-reduced-motion/);
 });
+
+test("V2 uses the measured nested workspace instead of a generic dashboard",()=>{
+ assert.match(code,/class="v2-workspace-frame"/);
+ assert.match(code,/class="v2-workspace-body"/);
+ assert.match(code,/What do you want to investigate\?/);
+ assert.match(code,/v2-workflow-grid/);
+ assert.match(code,/renderWorkflowCards/);
+ assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\);gap:16px/);
+ assert.match(css,/height:205px;padding:12px/);
+ assert.match(css,/padding:32px;background:var\(--v-shell\)/);
+ assert.match(css,/border-radius:14px/);
+ assert.match(css,/v2-discover-leading h2/);
+});
