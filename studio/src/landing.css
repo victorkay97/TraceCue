@@ -397,3 +397,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,.feature-content:focus-
  *{animation:none!important;transition:none!important}
  .will-reveal{opacity:1!important;transform:none!important}
 }
+
+
+/* Public preview privacy notice shares the light-first V2 language. */
+.policy-page{background:#fdfdfc}
+.policy-nav-link{margin-left:auto;font-size:11px;font-weight:710;background:#26382f;color:#fff;border-radius:5px;padding:10px 13px}
+.policy-nav-link:hover{background:#176f5b}
+.policy-content{max-width:810px;padding:85px 32px 110px;margin:0 auto}
+.policy-content h1{font-size:clamp(33px,4.5vw,54px);line-height:1.15;letter-spacing:-.06em;margin:16px 0 20px}
+.policy-content .lead{font-size:15px;line-height:1.8;color:#6a7770;margin-bottom:47px}
+.policy-content section{padding:22px 0 26px;border-top:1px solid #e2eae4}
+.policy-content h2{font-size:18px;letter-spacing:-.04em;margin-bottom:12px}
+.policy-content section p{font-size:12.5px;line-height:1.9;color:#78877c;margin-bottom:12px}
+.policy-content section a{color:#146e5a;text-decoration:underline;text-underline-offset:3px}
+.policy-return{display:inline-block;font-size:12px;color:#146f5d;font-weight:750;margin-top:23px}
+.policy-footer{padding-top:28px;padding-bottom:28px;display:flex;justify-content:space-between;gap:20px;border-top:1px solid #e4ede5;color:#99a59b;font-size:10px}
+@media(max-width:560px){.policy-content{padding:55px 21px 75px}.policy-footer{flex-direction:column;gap:8px}}
