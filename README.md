@@ -48,6 +48,12 @@ Apache License 2.0; see [LICENSE](LICENSE). See [third-party decisions](docs/THI
 
 [Open the TraceCue homepage](https://tracecue-studio-preview.vercel.app/) or [launch the fictional Studio demonstration](https://tracecue-studio-preview.vercel.app/app.html?demo=1). Vercel confirmed that the development-branch build is ready. The public demo includes fictional QA evidence and no private recordings. It does **not** yet have production Firebase credentials or App Check domain registration; local Firebase hybrid inference was verified separately. See [the current acceptance workflow](docs/V2_WORKFLOW.md) before claiming the newly added clipping/companion features are browser-verified. See also the [QA specialist's product roadmap](docs/QA_WORKSPACE_ROADMAP.md) for prioritized research, usability and reliability work. See [TraceCue 0.5 first-use release notes](docs/RELEASE_0_5.md) and [Chrome Web Store readiness](docs/WEB_STORE_READINESS.md).
 
+## Landing Page V2 — product-led presentation
+
+The public homepage at **[tracecue-studio-preview.vercel.app](https://tracecue-studio-preview.vercel.app/)** has been rebuilt with a light editorial design, a flat evidence-based product walkthrough, a keyboard-accessible four-state interactive showcase, a search against the actual fictional session fixture, a clear local/cloud privacy section, and an original evidence-trail footer. The interactive example does **not** invoke Firebase or send session data to cloud AI.
+
+The [V2 design and acceptance guide](docs/LANDING_V2.md) documents responsive breakpoints, the functionality exercised by automated tests and outstanding live browser review. The Studio remains accessible at [`/app.html`](https://tracecue-studio-preview.vercel.app/app.html) and its no-account fictional demo at [`/app.html?demo=1`](https://tracecue-studio-preview.vercel.app/app.html?demo=1).
+
 ## Multi-actor QA scenarios (0.6 Phase 1)
 
 Test the same authorized application as an administrator, student, lecturer or other role—even from different computers—using one shared **scenario ID** and anonymized tenant/actor labels in the extension sidebar. Each completed recording retains its original video and EV references. Import several exported session JSON files in Studio's **Multi-actor scenarios** workspace to compare captured signals per role, with **tenant isolation enabled by default**.

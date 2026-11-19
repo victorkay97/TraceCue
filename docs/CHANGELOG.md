@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-19 — TraceCue landing page V2
+
+- Rebuilt the public homepage with a light-first editorial layout, restrained green-teal identity, compact navigation and large fictional product evidence preview.
+- Added a keyboard-accessible four-state feature showcase (Capture, Mark, Investigate, Report), with soft transitions and reduced-motion support.
+- Implemented a functional on-page QA log query using the same deterministic search function and fictional data as Studio. No AI model or server upload is involved in this example.
+- Redesigned the three-step workflow, privacy section, installation CTA and original evidence-trail footer.
+- Reworked the separate public privacy page so it remains readable after the visual-system change.
+- Added regression checks for CTA routes, feature navigation, sampled HTTP 500 evidence, CSS breakpoints and reduced motion. GitHub CI passes.
+- Studio, Firebase, Chrome extension, recording and multi-actor workflows remain unchanged by this presentation redesign.
+- Browser-led desktop/mobile acceptance remains pending due to the browser bridge being temporarily unavailable.
+
+
 ## 2026-11-18 — TraceCue 0.6 Phase 1 · Multi-Actor QA
 
 - Added optional scenario ID, anonymized tenant alias, actor role and actor alias inputs to the Chrome capture sidebar; metadata carries into completed and recovered session reports.
