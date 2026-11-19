@@ -34,3 +34,8 @@ Run \`npm test\` in the repository root and \`npm --prefix studio run build\`. T
 8. Review the published preview against the original Playground video, checking fidelity of restraint, spacing and interaction quality **without copying its branding**.
 
 **Scope discipline:** This change does not modify Studio AI, Chrome recording/permissions, authentication or multi-actor scenario logic.
+
+
+## Measured parity refinement — 19 November 2026
+
+The landing now uses the supplied HI Playground audit as a geometric reference, not a source of branding or copied content. Desktop layout: 1200px max container with 64px insets, 72px header, 30/36px Geist 600 hero, 28px CTAs with 12/16px labels, 48px showcase icons and 16/24px feature titles. Below 1024px: 52px header, 16px insets, 18/21.6px hero, accessible mobile navigation drawer, scroll-snap example cards and arrow-key pagination. Body copy continues to use Inter, and TraceCue's green/teal accent remains distinct from Playground's purple. The product preview is simplified by hiding duplicated counters/recent labels and foregrounding captured evidence. The fictional playback, sample evidence search, privacy and installation flows remain unchanged. Runtime screenshot parity and interactive verification remain outstanding.

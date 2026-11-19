@@ -43,3 +43,17 @@ test("light theme and responsive breakpoints retain privacy, animation and motio
  assert.match(style,/\.policy-content/);
  assert.match(style,/\.sample-search/);
 });
+
+test("Playground-audited landing calibrates typography and mobile interactions",()=>{
+ assert.match(style,/HI Playground audit/);
+ assert.match(style,/max-width:1200px;padding-inline:64px/);
+ assert.match(style,/font:600 30px\/36px/);
+ assert.match(style,/height:28px;min-height:28px/);
+ assert.match(style,/@media\(max-width:1023px\)/);
+ assert.match(style,/scroll-snap-type:x mandatory/);
+ assert.match(html,/id="mobile-menu-toggle"/);
+ assert.match(html,/id="mobile-menu-panel"/);
+ assert.match(html,/id="feature-mobile-track"/);
+ assert.match(script,/function openMobileMenu/);
+ assert.match(script,/mobileTrack\.addEventListener\("keydown"/);
+});

@@ -79,7 +79,7 @@ function selectFeature(name,{focus=false}={}){
 const showcase=root.querySelector("#what-it-does");
 const pinned=showcase?.querySelector(".showcase-sticky");
 const order=["capture","mark","search","report"];
-const canScrollFeatures=()=>window.innerWidth>760&&
+const canScrollFeatures=()=>window.innerWidth>=1024&&
  !window.matchMedia("(prefers-reduced-motion: reduce)").matches&&pinned;
 let activeFeature="capture";
 const originalSelectFeature=selectFeature;
@@ -124,6 +124,82 @@ window.addEventListener("scroll",()=>{
 },{passive:true});
 window.addEventListener("resize",updateFeatureOnScroll);
 updateFeatureOnScroll();
+
+
+/* At tablet/mobile widths, show real swipeable feature cards instead of
+   squeezing the desktop tab panel into a narrow viewport. */
+const mobileTrack=root.querySelector("#feature-mobile-track");
+const mobileDots=root.querySelector("#feature-mobile-dots");
+if(mobileTrack&&mobileDots){
+ const cards=[],dots=[];
+ for(const [index,name] of order.entries()){
+  const data=featureStates[name];
+  const card=document.createElement("article");
+  card.className="feature-mobile-card";
+  card.id="mobile-feature-"+name;
+  card.setAttribute("aria-label",(index+1)+" of "+order.length+": "+data.title);
+  card.innerHTML='<div class="feature-mobile-visual">'+data.html+'</div><div class="feature-mobile-copy"><span>'+data.index+'</span><h3>'+data.title+'</h3><p>'+data.description+'</p></div>';
+  mobileTrack.append(card);cards.push(card);
+  const dot=document.createElement("button");
+  dot.type="button";dot.setAttribute("aria-label","Show "+name+" feature");dot.setAttribute("aria-controls",card.id);
+  dot.addEventListener("click",()=>card.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest",inline:"center"}));
+  mobileDots.append(dot);dots.push(dot);
+ }
+ let pending=false;
+ function updateCarouselPosition(){
+  const center=mobileTrack.getBoundingClientRect().left+mobileTrack.clientWidth/2;
+  let nearest=0,distance=Infinity;
+  cards.forEach((card,index)=>{const rect=card.getBoundingClientRect();const d=Math.abs(rect.left+rect.width/2-center);if(d<distance){distance=d;nearest=index;}});
+  dots.forEach((dot,index)=>{dot.classList.toggle("is-active",index===nearest);dot.setAttribute("aria-current",index===nearest?"true":"false");});
+ }
+ mobileTrack.addEventListener("scroll",()=>{
+  if(pending)return;pending=true;
+  requestAnimationFrame(()=>{pending=false;updateCarouselPosition();});
+ },{passive:true});
+ mobileTrack.addEventListener("keydown",event=>{
+  if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+  event.preventDefault();
+  const current=dots.findIndex(dot=>dot.getAttribute("aria-current")==="true");
+  const next=event.key==="Home"?0:event.key==="End"?cards.length-1:Math.max(0,Math.min(cards.length-1,current+(event.key==="ArrowRight"?1:-1)));
+  cards[next]?.scrollIntoView({behavior:"auto",block:"nearest",inline:"center"});
+ });
+ window.addEventListener("resize",updateCarouselPosition);
+ updateCarouselPosition();
+}
+
+/* Mobile drawer: Escape/backdrop dismissal, focus return and focus trap. */
+const menuToggle=root.querySelector("#mobile-menu-toggle");
+const menuPanel=root.querySelector("#mobile-menu-panel");
+const menuBackdrop=root.querySelector("#mobile-menu-backdrop");
+const menuClose=root.querySelector("#mobile-menu-close");
+let previousOverflow="";
+function closeMobileMenu(restoreFocus=false){
+ if(!menuPanel||menuPanel.hidden)return;
+ menuPanel.hidden=true;menuBackdrop.hidden=true;
+ menuToggle.setAttribute("aria-expanded","false");menuToggle.setAttribute("aria-label","Open menu");
+ document.body.style.overflow=previousOverflow;
+ if(restoreFocus)menuToggle.focus();
+}
+function openMobileMenu(){
+ if(!menuPanel||!menuPanel.hidden)return;
+ previousOverflow=document.body.style.overflow;
+ menuPanel.hidden=false;menuBackdrop.hidden=false;
+ menuToggle.setAttribute("aria-expanded","true");menuToggle.setAttribute("aria-label","Close menu");
+ document.body.style.overflow="hidden";menuClose.focus();
+}
+menuToggle?.addEventListener("click",()=>menuPanel.hidden?openMobileMenu():closeMobileMenu(true));
+menuClose?.addEventListener("click",()=>closeMobileMenu(true));
+menuBackdrop?.addEventListener("click",()=>closeMobileMenu(true));
+menuPanel?.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>closeMobileMenu()));
+document.addEventListener("keydown",event=>{
+ if(menuPanel?.hidden)return;
+ if(event.key==="Escape"){event.preventDefault();closeMobileMenu(true);return;}
+ if(event.key!=="Tab")return;
+ const items=Array.from(menuPanel.querySelectorAll("button,a[href]"));
+ if(event.shiftKey&&document.activeElement===items[0]){event.preventDefault();items[items.length-1].focus();}
+ else if(!event.shiftKey&&document.activeElement===items[items.length-1]){event.preventDefault();items[0].focus();}
+});
+window.addEventListener("resize",()=>{if(window.innerWidth>=1024)closeMobileMenu();});
 
 const previewDetails={
  click:{time:"00:06.0",progress:"30%",insight:"The tester clicked Save changes at 00:06.0. TraceCue keeps the UI action so the next event has context."},
