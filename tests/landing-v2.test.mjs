@@ -58,12 +58,15 @@ test("Playground-audited landing calibrates typography and mobile interactions",
  assert.match(script,/mobileTrack\.addEventListener\("keydown"/);
 });
 
-test("hero explanatory copy sits alongside product at wide desktop and footer uses a credited photograph",()=>{
- assert.match(style,/@media\(min-width:1160px\)/);
- assert.match(style,/\.hero-intro\{display:contents\}/);
- assert.match(style,/\.hero-aside\{grid-column:2;grid-row:2/);
- assert.match(style,/\.hero-product\{grid-column:1;grid-row:2/);
- assert.match(style,/photo-1712628956639-638ad87c988e/);
- assert.match(html,/class="footer-photo-credit"/);
- assert.match(html,/Ilias Haddad \/ Unsplash/);
+test("hero keeps copy above full-width product and shifts aside farther right",()=>{
+ assert.match(style,/@media\(min-width:1024px\)/);
+ assert.match(style,/\.hero\.frame\{display:block\}/);
+ assert.match(style,/\.hero-intro\{\s*display:grid;/);
+ assert.match(style,/grid-template-columns:minmax\(0,1fr\) minmax\(0,390px\)/);
+ assert.match(style,/\.hero-aside\{[\s\S]*?justify-self:end/);
+ assert.match(style,/\.hero-product\{grid-column:auto;grid-row:auto;width:100%/);
+ assert.doesNotMatch(style,/\.hero-intro\{display:contents\}/);
+ assert.match(style,/photo-1777978404260-d1adfd1bd6ee/);
+ assert.doesNotMatch(style,/photo-1712628956639-638ad87c988e/);
+ assert.match(html,/Photo: Narbeh Arakil \/ Unsplash/);
 });

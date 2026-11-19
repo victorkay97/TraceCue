@@ -1013,47 +1013,53 @@ html{scroll-padding-top:80px}
  .feature-mobile-track{scroll-behavior:auto}
 }
 
-/* Hero composition update: the explanatory copy accompanies the actual
-   TraceCue Studio preview instead of hovering above it. */
-@media(min-width:1160px){
- .hero.frame{display:grid;grid-template-columns:minmax(0,3.05fr) minmax(245px,1fr);column-gap:36px;align-items:center}
- .hero-intro{display:contents}
- .hero-head{grid-column:1/-1;grid-row:1}
- .hero-product{grid-column:1;grid-row:2;margin-top:33px;min-width:0}
- .hero-aside{grid-column:2;grid-row:2;align-self:center;min-width:0;padding-top:0}
- .hero-aside p{font:400 14px/23px var(--font-body);letter-spacing:-.35px;max-width:285px;color:#707070}
- .hero-aside .aside-note{margin-top:17px;line-height:18px;font-size:11px}
- .product-surface{grid-template-columns:128px minmax(0,1fr)}
- .product-sidebar{padding-inline:9px}
- .product-workspace{padding-inline:13px}
- .product-columns{gap:9px}
- .evidence-event{grid-template-columns:40px 35px minmax(0,1fr);gap:4px;padding-inline:6px}
- .evidence-event strong{font-size:9.5px}
- .evidence-insight{padding:8px}
- .product-bottom a{font-size:9px}
-}
 
-/* Genuine developer-workstation photograph replaces the illustration.
-   Unsplash License; Ilias Haddad (photo 6fPimawrebk). */
+/* Restore the original hero structure: copy remains opposite the headline,
+   and the product preview spans the full width beneath both text blocks.
+   The right copy column is deliberately narrower and right-aligned to create
+   the requested larger editorial gap between the two blocks. */
+@media(min-width:1024px){
+ .hero.frame{display:block}
+ .hero-intro{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,390px);
+  column-gap:clamp(72px,8vw,120px);
+  align-items:start;
+ }
+ .hero-head{grid-column:auto;grid-row:auto}
+ .hero-aside{
+  grid-column:auto;grid-row:auto;
+  align-self:start;justify-self:end;
+  width:100%;max-width:390px;
+  padding-top:3px;
+ }
+ .hero-aside p{max-width:390px;font:400 16px/24px var(--font-body);letter-spacing:-.56px;color:#707070}
+ .hero-product{grid-column:auto;grid-row:auto;width:100%;margin-top:33px}
+}
+/* The footer is photographic like the reference, not a developer-workstation
+   stock image or an illustration. Narbeh Arakil / Unsplash (lqNaNyxDgaA). */
 .footer-landscape{
- background-color:#15201d;
- background-image:linear-gradient(180deg,rgba(12,22,21,.18),rgba(12,22,21,.45)),
-  url("https://images.unsplash.com/photo-1712628956639-638ad87c988e?auto=format&fit=crop&w=1800&q=82");
+ background-color:#5a9fc3;
+ background-image:
+  linear-gradient(180deg,rgba(7,40,76,.09),rgba(8,34,64,.15)),
+  url("https://images.unsplash.com/photo-1777978404260-d1adfd1bd6ee?auto=format&fit=crop&w=1800&q=82");
  background-size:cover;
- background-position:center 47%;
+ background-position:center 50%;
  background-repeat:no-repeat;
 }
 .footer-landscape::after{
- background:linear-gradient(180deg,rgba(8,19,17,.04),rgba(8,19,17,.22));
+ background:linear-gradient(180deg,transparent,rgba(12,40,69,.12));
 }
 .footer-landscape-sky{display:none}
 .footer-photo-credit{
  position:absolute;right:16px;bottom:12px;z-index:3;
- color:#fff;background:#111b19b0;border-radius:4px;padding:4px 7px;
+ color:#fff;background:#132f4bb8;border-radius:4px;padding:4px 7px;
  font:500 10px/14px var(--font-body);text-decoration:none;
 }
-.footer-photo-credit:hover,.footer-photo-credit:focus-visible{background:#111b19e8;color:#fff;text-decoration:underline}
+.footer-photo-credit:hover,.footer-photo-credit:focus-visible{
+ background:#132f4bef;color:#fff;text-decoration:underline
+}
 @media(max-width:560px){
- .footer-landscape{background-position:58% center}
+ .footer-landscape{background-position:53% center}
  .footer-photo-credit{right:12px;bottom:9px;font-size:9px}
 }
