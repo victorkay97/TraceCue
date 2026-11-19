@@ -1,0 +1,34 @@
+:root{font-family:Inter,system-ui,sans-serif;background:#0d1721;color:#eaf3f4;font-size:13px;color-scheme:dark}*{box-sizing:border-box}body{margin:0}main{max-width:470px;margin:auto;padding:20px}header,.identity,.actions,.lookback,footer{display:flex;align-items:center;gap:12px}header{justify-content:space-between;padding-bottom:22px;border-bottom:1px solid #2a3e4c}.identity strong,.identity small{display:block}.identity strong{font-size:17px}.identity small{color:#8babb4;font-size:10px;margin-top:3px}.avatar{width:43px;height:43px;background:#bdeae2;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#153b43;line-height:10px;box-shadow:inset -7px -6px #7cb9b5}.eyes{font-size:20px;letter-spacing:5px;margin-left:5px}.smile{font-size:27px;line-height:13px}.indicator{font-size:11px;padding:7px 10px;border-radius:50px;color:#9abbad;border:1px solid #39564a;background:#1a322d}.indicator.recording{color:#ffc3bd;background:#4a2229;border-color:#7b3742}.hero{padding:22px 0}.eyebrow{color:#91c6c6;letter-spacing:2px;font-size:10px;font-weight:800}h1{font-size:25px;margin:9px 0;line-height:1.2}h1 em{font-style:normal;color:#8da5b1}p{color:#9bb0bd;line-height:1.6}.timer{font-size:28px;letter-spacing:2px;font-weight:800;margin-top:15px}.card{border:1px solid #354d57;background:#152633;padding:17px;border-radius:13px;margin-bottom:13px}button{font:inherit;cursor:pointer;border:1px solid #496170;border-radius:9px;padding:10px 12px;font-weight:750;color:#e7f1f3;background:#283d4a}button:disabled{opacity:.4;cursor:default}.actions{margin-top:14px;gap:8px;flex-wrap:wrap}.primary{background:#bbebe3;color:#133c40;border-color:#bbebe3}.danger:not(:disabled){background:#6c3037;border-color:#98545d}.secondary{margin-top:12px;width:100%}label{font-size:11px;color:#c4d9df;display:block;margin-top:16px;margin-bottom:6px}input{width:100%;background:#0b1924;border:1px solid #3d5362;border-radius:9px;padding:12px;color:#f0f5f5;font:inherit}.lookback{gap:6px;flex-wrap:wrap}.lookback button{padding:9px 11px}.lookback button.selected{background:#bce8e0;color:#153b39}.hint{font-size:11px;margin-bottom:0}#message{font-size:12px;margin-bottom:0;overflow-wrap:anywhere}footer{flex-wrap:wrap;justify-content:space-between;margin-top:19px}footer button{font-size:11px;background:transparent}footer span{font-size:10px;color:#7995a4;width:100%;text-align:center;margin-top:9px}
+
+.issue-history{margin-top:17px;border-top:1px solid #35515c;padding-top:14px}
+.history-header{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+.history-header span{font-size:10px;color:#9ebdc1}
+.issue-history ol{list-style:none;padding:0;margin:9px 0;max-height:210px;overflow-y:auto}
+.issue-history li{display:flex;flex-direction:column;gap:4px;padding:9px 0;border-bottom:1px solid #2c444f}
+.issue-history li strong{font-size:12px;color:#e9f4f2;font-weight:650;overflow-wrap:anywhere}
+.issue-history li small{font-size:10px;color:#96bcc1}
+.issue-history li.no-marker{font-size:11px;color:#7997a4}
+
+.privacy-log-toggle{display:flex;align-items:flex-start;gap:8px;margin:15px 0 2px;color:#a4bdc5;font-size:11px;font-weight:550}
+.privacy-log-toggle input{width:auto;margin-top:3px;accent-color:#b2e8d8}
+.issue-suggestions{margin:15px 0 10px;border-top:1px dashed #34535f;padding-top:13px}
+.issue-suggestions strong{display:block;font-size:12px;color:#d3ebe7}
+.suggestion-button{display:block;width:100%;text-align:left;font-size:11px;margin:6px 0;background:#223b46;color:#cce7df;border:1px solid #3d6570;padding:9px}
+.suggestion-button:hover{background:#30515c}
+
+.first-run-steps{background:#1b323a;border:1px solid #3d6163;border-radius:11px;padding:12px 14px;margin-bottom:14px}
+.first-run-steps summary{cursor:pointer;color:#cce8df;font-size:12px;font-weight:800}
+.first-run-steps ol{font-size:11px;color:#aec9ca;line-height:1.8;padding-left:19px;margin:11px 0}
+.first-run-steps p{font-size:11px;color:#97b8b5;margin-bottom:0}
+
+/* Optional cross-device scenario labels: no credentials or account sharing */
+.test-scenario-fields{background:#152a33;border:1px solid #3c5e68;border-radius:11px;margin:14px 0;padding:13px}
+.test-scenario-fields summary{cursor:pointer;font-size:12px;font-weight:800;color:#d9eee8}
+.test-scenario-fields summary span{font-size:10px;color:#8eadb2;font-weight:500;margin-left:6px}
+.test-scenario-fields p{color:#9db8ba;font-size:11px;line-height:1.6;margin:10px 0}
+.test-scenario-fields label{display:block;margin:11px 0 5px;font-size:11px;color:#bfd7d5}
+.test-scenario-fields input{width:100%;box-sizing:border-box;color:#ebf5f3;background:#0e1b27;border:1px solid #35535c;border-radius:7px;font-size:12px;padding:9px}
+.test-scenario-fields input:disabled{opacity:.58}
+.test-scenario-fields .scenario-two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.test-scenario-fields .scenario-status{color:#a9ddd1}
+@media(max-width:420px){.test-scenario-fields .scenario-two{grid-template-columns:1fr}}

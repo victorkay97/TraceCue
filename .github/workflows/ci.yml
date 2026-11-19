@@ -1,0 +1,68 @@
+name: TraceCue checks
+on:
+  push:
+    branches: [main, feat/tracecue-foundation]
+  pull_request:
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate extension scripts
+        run: |
+          node --check extension/background.js
+          node --check extension/content.js
+          node --check extension/offscreen.js
+          node --check extension/viewer.js
+          node --check extension/sidepanel.js
+          node --check extension/companion.js
+          node --check extension/clipper.js
+          node --check extension/clip-viewer.js
+          node --check extension/issue-export.js
+          node --check extension/clip-evidence.js
+          node --check extension/recording-keys.js
+          node --check extension/recovery.js
+          node --check extension/library.js
+          node --check extension/session-library.js
+          node --check extension/studio-handoff.js
+          node --check studio/src/extension-handoff.js
+          node --check studio/src/onboarding.js
+          node --check studio/src/ai-readiness.js
+          node --check extension/test-context.js
+          node --check studio/src/scenario-model.js
+          node --check studio/src/scenario-workspace.js
+          node --check studio/src/landing.js
+          node --check studio/src/issue-scope.js
+          node --check studio/src/qa-query.js
+          node --check studio/src/query-workspace.js
+          node --check studio/src/annotation-core.js
+          node --check studio/src/frame-annotator.js
+          node --check studio/src/synchronized-video.js
+          node --check studio/src/repro-audit.js
+      - name: Run evidence processing tests
+        run: npm test
+      - name: Install Studio dependencies
+        run: npm --prefix studio install --no-audit --no-fund
+      - name: Build Studio
+        run: npm --prefix studio run build
+      - name: Validate marketing and Studio page outputs
+        run: |
+          test -s studio/dist/index.html
+          test -s studio/dist/app.html
+          test -s studio/dist/privacy.html
+          test -s studio/dist/favicon.svg
+      - name: Package Chrome developer preview
+        run: |
+          cd extension
+          zip -q -r ../tracecue-companion-dev.zip . -x "*.DS_Store"
+          cd ..
+          unzip -l tracecue-companion-dev.zip | grep -q "manifest.json"
+      - name: Upload developer-preview extension ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: tracecue-companion-developer-preview
+          path: tracecue-companion-dev.zip
+          retention-days: 14

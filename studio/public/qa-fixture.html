@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraceCue QA Fixture — Controlled Defect Scenarios</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e7f5f1;background:#0c1821}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(20px,5vw,64px)}
+main{max-width:820px;margin:0 auto}
+h1{font-size:clamp(30px,5vw,46px);margin:8px 0}
+p{color:#aabec7;line-height:1.55}
+small{color:#92d6d4;text-transform:uppercase;letter-spacing:2px;font-weight:700}
+.panel{background:#172834;border:1px solid #2f4556;border-radius:18px;padding:24px;margin-top:26px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+button{background:#bae9e2;color:#113333;border:0;border-radius:12px;padding:15px 16px;font-size:14px;font-weight:800;cursor:pointer;text-align:left}
+button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+button.secondary{background:#2c4352;color:#e3eff3}
+#status{margin:18px 0 0;padding:15px;background:#0b1d2a;border-radius:10px;min-height:56px;color:#e4eebd}
+code{color:#c3dfe7}
+@media(max-width:650px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<small>TraceCue · Development fixture</small>
+<h1>Reproduce a known failure.</h1>
+<p>This local test page uses fictional data only. It deliberately generates a failed network request, a synthetic name mismatch, one JavaScript exception and repeatable warning logs so you can check TraceCue's evidence recorder and filters without recording somebody else's website.</p>
+<section class="panel">
+<h2>Controlled test actions</h2>
+<div class="grid">
+  <button id="fail" data-testid="fixture-failed-save">1. Simulate failed save (HTTP 404)</button>
+  <button id="mismatch" data-testid="fixture-name-mismatch" class="secondary">2. Simulate name mismatch</button>
+  <button id="warn" data-testid="fixture-warnings" class="secondary">3. Trigger repeated console warnings</button>
+  <button id="throw" data-testid="fixture-exception" class="secondary">4. Trigger an uncaught exception</button>
+  <button id="info" data-testid="fixture-log-success" class="secondary">5. Trace console info & successful fetch</button>
+  <button id="clear" data-testid="fixture-reset" class="secondary">Reset visual status</button>
+</div>
+<div id="status" role="status" aria-live="polite">Ready. Start TraceCue first, then click the actions above.</div>
+<div style="padding-top:15px;font-size:13px;color:#b2dfd6">Actions triggered: <strong id="audit-count">Save 0 · Name mismatch 0 · Warning batch 0 · Exception 0 · Success trace 0</strong></div>
+</section>
+<section class="panel">
+<h2>Expected evidence</h2>
+<p><strong>Failed save:</strong> at least one failed network request, plus a console error. The simulated UI reports an error.</p>
+<p><strong>Name mismatch:</strong> a fictional profile displays the wrong name (Expected: Ada, actual: Sam) and emits a labelled console error, without reading input values.</p>
+<p><strong>Warnings:</strong> several identical warning messages, eligible for grouping as one entry with multiple occurrences.</p>
+<p><strong>Uncaught exception:</strong> one JavaScript exception, not merely a warning.</p>
+<p><strong>Successful trace:</strong> an HTTP 200 response to a fictional public fixture JSON and console.log / info / debug messages without secrets.</p>
+<p>Use <code>Ctrl+Shift+9</code> to add an issue marker during recording. Stop TraceCue and compare these events with the recorded video.</p>
+</section>
+</main>
+<script>
+const status=document.getElementById("status");
+const counts={fail:0,mismatch:0,warn:0,exception:0,info:0};
+function acknowledge(name) {
+  counts[name]++;
+  document.getElementById("audit-count").textContent=
+    "Save "+counts.fail+" · Name mismatch "+counts.mismatch+" · Warning batch "+counts.warn+
+    " (4 console.warn each) · Exception "+counts.exception+" · Success trace "+counts.info;
+}
+document.getElementById("fail").addEventListener("click",async()=>{
+  acknowledge("fail");
+  status.textContent="Simulating a failed save…";
+  try {
+    // The dev server intentionally has no handler for this POST path.
+    const response=await fetch("/__tracecue_fixture_expected_404__",{
+      method:"POST",headers:{"Content-Type":"text/plain"},body:"synthetic-test-request"
+    });
+    status.textContent="Expected failure fixture: request returned HTTP "+response.status;
+    console.error("TraceCue fixture: simulated save request returned HTTP "+response.status);
+  }catch(error){
+    status.textContent="Expected failure fixture: network request did not complete";
+    console.error("TraceCue fixture: simulated save request could not complete");
+  }
+});
+document.getElementById("mismatch").addEventListener("click",()=>{
+  acknowledge("mismatch");
+  status.textContent="Fictional name mismatch — expected Ada, but the page displays Sam.";
+  console.error("TraceCue fixture: synthetic profile name mismatch, no user data");
+});
+document.getElementById("warn").addEventListener("click",()=>{
+  acknowledge("warn");
+  for(let i=0;i<4;i++) console.warn("TraceCue fixture: repeatable, non-critical warning");
+  status.textContent="Generated four identical warnings.";
+});
+document.getElementById("throw").addEventListener("click",()=>{
+  acknowledge("exception");
+  status.textContent="Generating one intentional JavaScript exception.";
+  throw new TypeError("TraceCue fixture: deliberate unhandled exception for QA testing");
+});
+document.getElementById("info").addEventListener("click",async()=>{
+  acknowledge("info");
+  console.log("TraceCue fixture: safe console log");
+  console.info("TraceCue fixture: safe informational signal");
+  console.debug("TraceCue fixture: safe diagnostic debug message");
+  try {
+    const response=await fetch("/demo-session.json",{cache:"no-store"});
+    status.textContent="Public fictional fixture response: HTTP "+response.status;
+    console.info("TraceCue fixture: test GET completed with HTTP "+response.status);
+  }catch(error){
+    status.textContent="Public fictional fixture request failed";
+    console.error("TraceCue fixture: successful response test was unavailable");
+  }
+});
+document.getElementById("clear").addEventListener("click",()=>{
+  status.textContent="Visual status reset. No application data was changed.";
+});
+</script>
+</body>
+</html>

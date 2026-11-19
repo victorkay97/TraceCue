@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TraceCue · Session review</title><link rel="stylesheet" href="viewer.css"></head>
+<body>
+  <header class="top">
+    <div class="identity"><span class="logo">T<span class="dot">•</span></span><div><strong>TraceCue</strong><small>QA Companion</small></div></div>
+    <span class="status">Private local evidence</span>
+  </header>
+  <main>
+    <div class="eyebrow">SESSION REVIEW</div>
+    <h1 id="title">Loading session…</h1>
+    <p id="meta" class="muted"></p>
+    <div id="recoveryNotice" class="notice" hidden role="alert"></div>
+    <div class="notice"><strong>Privacy checkpoint.</strong> Recordings can display private information. Review the video and technical logs before sharing any exports.</div>
+    <section class="stats" id="summary"></section>
+    <div class="columns">
+      <section class="panel">
+        <div class="panel-head"><h2>Recorded tab</h2><span id="videoStatus">Loading local recording…</span></div>
+        <video id="video" controls playsinline></video>
+        <div class="toolbar">
+          <button id="saveVideo">Save video</button>
+          <button id="saveJson" class="secondary">Export redacted JSON</button>
+          <button id="saveMarkdown" class="secondary">Export issue draft</button>
+          <button id="deleteSession" class="danger">Delete local session</button>
+        </div>
+        <section class="studio-handoff" aria-label="Open the current recording in TraceCue Studio">
+  <div class="panel-head"><h2>Continue in Studio</h2><span>Local browser transfer</span></div>
+  <p class="muted tiny">Send this reviewed session directly to a TraceCue Studio window. No account, server upload or automatic AI request. Keep this review tab open until Studio confirms the import.</p>
+  <label for="studioDestination">Studio destination</label>
+  <select id="studioDestination"><option value="local">Local Studio (127.0.0.1:5173)</option><option value="preview">Hosted preview (tracecue-studio-preview.vercel.app)</option></select>
+  <label class="studio-approval"><input type="checkbox" id="studioTransferConsent"> I reviewed the recording and logs, have permission to handle them, and approve transfer to the selected Studio origin.</label>
+  <button id="openStudio" class="secondary">Open reviewed session in Studio ↗</button>
+  <p id="studioTransferStatus" class="muted tiny" role="status">Nothing has been transferred.</p>
+</section>
+<label for="issueTitle">Issue title (optional)</label>
+        <input id="issueTitle" type="text" maxlength="160" placeholder="e.g. Save button does not update the profile"/>
+        <label for="notes">Tester notes / expected vs actual</label>
+        <textarea id="notes" rows="5" placeholder="Expected: save succeeds. Actual: response 500 and UI is unchanged."></textarea>
+        <p class="muted tiny">Notes are stored only in your browser until you choose to export.</p>
+        <section class="clips-panel" aria-label="Issue video clips">
+          <div class="panel-head"><h2>Issue clips</h2><span id="clipCount">Preparing markers…</span></div>
+          <p class="muted tiny">Your full video is preserved. Each marker creates a separate WebM covering the selected time before the issue. Rendering clips plays that interval locally in real time; keep this tab open until complete.</p>
+          <div id="clipList"></div>
+          <p id="clipStatus" class="muted tiny" role="status" aria-live="polite">No clips generated yet.</p>
+          <video id="clipPreview" controls playsinline hidden aria-label="Selected issue clip"></video>
+          <button id="retryClips" class="secondary" hidden>Generate remaining clips</button>
+        </section>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Evidence timeline</h2><span id="count"></span></div>
+        <p class="muted tiny">Select an event to jump to that moment in the recording.</p>
+        <div class="filters" role="group" aria-label="Timeline filters">
+          <button class="filter active" data-filter="all" aria-pressed="true">All</button>
+          <button class="filter" data-filter="errors" aria-pressed="false">Failures</button>
+          <button class="filter" data-filter="warnings" aria-pressed="false">Warnings</button>
+          <button class="filter" data-filter="environment" aria-pressed="false">Environment</button>
+          <button class="filter" data-filter="actions" aria-pressed="false">Actions</button>
+          <button class="filter" data-filter="markers" aria-pressed="false">Markers</button>
+        </div>
+        <div id="timeline"></div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="viewer.js"></script>
+</body></html>
