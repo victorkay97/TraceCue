@@ -146,6 +146,49 @@ root.querySelectorAll("[data-preview-event]").forEach(button=>button.addEventLis
 root.querySelectorAll("[data-preview-event]").forEach(button=>
  button.setAttribute("aria-pressed",String(button.dataset.previewEvent==="500")));
 
+
+const previewButtons=Array.from(root.querySelectorAll("[data-preview-event]"));
+const previewPlay=root.querySelector("#hero-preview-play");
+let previewTimer=null;
+let previewIndex=1;
+let previewManuallyPaused=false;
+function setPreviewPlaying(playing){
+ if(previewTimer){window.clearInterval(previewTimer);previewTimer=null;}
+ if(playing){
+  previewTimer=window.setInterval(()=>{
+   previewIndex=(previewIndex+1)%previewButtons.length;
+   previewButtons[previewIndex]?.click();
+  },3700);
+ }
+ if(previewPlay){
+  previewPlay.setAttribute("aria-pressed",String(playing));
+  previewPlay.setAttribute("aria-label",(playing?"Pause":"Play")+" fictional event timeline");
+  const icon=previewPlay.querySelector("use");
+  if(icon)icon.setAttribute("href",playing?"#icon-pause":"#icon-play");
+ }
+}
+previewPlay?.addEventListener("click",()=>{
+ previewManuallyPaused=!!previewTimer;
+ setPreviewPlaying(!previewTimer);
+});
+previewButtons.forEach((button,index)=>button.addEventListener("click",event=>{
+ previewIndex=index;
+ if(event.isTrusted&&previewTimer){
+  previewManuallyPaused=true;
+  setPreviewPlaying(false);
+ }
+}));
+if("IntersectionObserver" in window){
+ const observer=new IntersectionObserver(entries=>{
+  const visible=entries.some(e=>e.isIntersecting);
+  if(visible&&!previewManuallyPaused&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+   setPreviewPlaying(true);
+  else if(!visible) setPreviewPlaying(false);
+ },{threshold:.15});
+ const hero=root.querySelector(".hero-product");
+ if(hero)observer.observe(hero);
+}
+
 const form=root.querySelector("#sample-search-form");
 const field=root.querySelector("#sample-query");
 const output=root.querySelector("#sample-result-body");
