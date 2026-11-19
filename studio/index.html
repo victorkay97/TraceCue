@@ -26,6 +26,7 @@
  <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M5 21V5m0 0c5-4 9 4 15 0v11c-6 4-10-4-15 0"/></symbol>
  <symbol id="icon-report" viewBox="0 0 24 24"><path d="M7 3h8l5 5v13H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z"/><path d="M15 3v6h5M9 14h7m-7 4h5"/></symbol>
  <symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 5-3.7 8.2-9 10-5.3-1.8-9-5-9-10V6l9-4Z"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+ <symbol id="icon-terminal" viewBox="0 0 24 24"><path d="m4 7 5 5-5 5m8 0h8"/></symbol>
  <symbol id="icon-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
 </svg>
 <div class="site" id="landing">
@@ -53,50 +54,71 @@
      <span class="aside-note"><svg class="icon"><use href="#icon-shield"/></svg> Local-first · No signup for the demo</span>
     </div>
    </div>
-   <div class="hero-product" aria-label="Interactive representation of fictional TraceCue session evidence">
-    <div class="hero-product-topline"><span><svg class="icon"><use href="#icon-record"/></svg> A testing session, with context.</span><span>Fictional demonstration · not a live recording</span></div>
+
+   <div class="hero-product" aria-label="Interactive fictional TraceCue testing session">
+    <div class="hero-browser-bar">
+     <span class="browser-traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+     <span class="browser-address"><svg class="icon"><use href="#icon-shield"/></svg> tracecue.studio / sessions / profile-save</span>
+     <span class="browser-demo-meta"><span class="live-pulse"></span> Interactive sample session</span>
+    </div>
     <div class="product-surface">
-     <aside class="product-sidebar" aria-label="Example QA workspace navigation">
+     <aside class="product-sidebar" aria-label="Illustrative TraceCue Studio sidebar">
       <div class="product-logo"><span class="brand-symbol small"><svg class="brand-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h6v6h6"/><path d="M6 6v12h7"/><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="12" r="2.4"/><circle cx="13" cy="18" r="2.4"/></svg></span><span>TraceCue <small>Studio</small></span></div>
       <div class="product-menu-label">WORKSPACE</div>
-      <div class="product-menu-item"><svg class="icon"><use href="#icon-report"/></svg> Overview</div>
-      <div class="product-menu-item active"><svg class="icon"><use href="#icon-record"/></svg> Evidence timeline</div>
-      <div class="product-menu-item"><svg class="icon"><use href="#icon-search"/></svg> Investigation</div>
-      <div class="product-side-bottom"><svg class="icon"><use href="#icon-shield"/></svg><span>Stored locally<br><small>Nothing automatically shared</small></span></div>
+      <div class="product-menu-item"><svg class="icon"><use href="#icon-report"/></svg><span>Overview</span></div>
+      <div class="product-menu-item active"><svg class="icon"><use href="#icon-record"/></svg><span>Session review</span></div>
+      <div class="product-menu-item"><svg class="icon"><use href="#icon-search"/></svg><span>Investigations</span></div>
+      <div class="product-menu-label second-label">RECENT</div>
+      <div class="product-recent"><span class="recent-dot"></span><div><strong>Profile save</strong><small>Today, 10:42 AM</small></div></div>
+      <div class="product-recent"><span class="recent-dot warm"></span><div><strong>Checkout flow</strong><small>Yesterday</small></div></div>
+      <div class="product-side-bottom"><svg class="icon"><use href="#icon-shield"/></svg><span>On this device<small>Local evidence workspace</small></span></div>
      </aside>
      <div class="product-workspace">
-      <div class="product-breadcrumb">Sessions <span>/</span> Profile save test <span class="product-pill">Sample session</span></div>
-      <div class="product-header">
-       <div><small>SESSION OVERVIEW</small><h2>Profile save investigation</h2><p>Two issues · 20-second fictional session</p></div>
-       <span class="sample-state"><i></i> Recording complete</span>
-      </div>
+      <div class="product-breadcrumb"><span>Sessions</span><svg class="icon"><use href="#icon-chevron"/></svg><span>Profile save investigation</span><span class="product-pill">FICTIONAL DEMO</span></div>
+      <div class="product-header"><div><small>SESSION REVIEW / TC-0004</small><h2>Profile save investigation</h2><p>Full recording and evidence, synchronized to the moment.</p></div><span class="sample-state"><i></i> Review ready</span></div>
+      <div class="session-summary"><div><span>ISSUES CAPTURED</span><strong>02</strong><small>During one session</small></div><div><span>RECORDING</span><strong>00:20</strong><small>Full session preserved</small></div><div><span>EVENTS</span><strong>08</strong><small>With timestamps</small></div></div>
       <div class="product-columns">
        <div class="product-player">
-        <div class="player-label"><span>Session recording</span><span class="fictional-label">Illustrative browser frame</span></div>
-        <div class="player-frame"><div class="profile-screen">
-         <span class="screen-tag">PROFILE SETTINGS</span><strong>Personal information</strong>
-         <span class="screen-field">Display name <b>Ada Okafor</b></span>
-         <span class="screen-field">Email address <b>name@example.test</b></span>
-         <span class="screen-save">Save changes <svg class="icon"><use href="#icon-arrow"/></svg></span>
-        </div></div>
-        <div class="player-controls"><span class="player-play"><svg class="icon"><use href="#icon-play"/></svg></span><span class="player-time" id="hero-player-time">00:06.3</span><div class="player-track"><span></span><i class="track-issue-a"></i><i class="track-issue-b"></i></div><span class="player-time">00:20</span></div>
-        <div class="player-footnote">One full recording. Two individually named issues.</div>
+        <div class="player-label"><span><svg class="icon"><use href="#icon-play"/></svg> Session recording</span><span class="fictional-label">Illustrative browser frame</span></div>
+        <div class="player-frame">
+         <div class="profile-screen">
+          <div class="screen-site"><span class="screen-site-mark"></span><span>Example dashboard</span><span>Account settings</span></div>
+          <div class="screen-content">
+           <span class="screen-tag">YOUR PROFILE</span>
+           <strong>Personal information</strong>
+           <p>Manage your public profile and account details.</p>
+           <span class="screen-field"><span>Display name</span><b>Ada Okafor</b></span>
+           <span class="screen-field"><span>Email address</span><b>name@example.test</b></span>
+           <span class="screen-save">Save changes <svg class="icon"><use href="#icon-arrow"/></svg></span>
+          </div>
+         </div>
+        </div>
+        <div class="player-controls">
+         <span class="player-play" aria-hidden="true"><svg class="icon"><use href="#icon-play"/></svg></span>
+         <span class="player-time" id="hero-player-time">00:06.3</span>
+         <div class="player-track"><span id="hero-track-progress"></span><i class="track-issue-a"></i><i class="track-issue-b"></i></div>
+         <span class="player-time">00:20</span>
+        </div>
+        <div class="player-footnote">Sample timeline. Select a recorded event to jump to that moment.</div>
        </div>
        <div class="product-evidence">
-        <div class="evidence-heading"><strong>Technical evidence</strong><span>3 highlighted events</span></div>
-        <button class="evidence-event" type="button" data-preview-event="click"><span class="event-time">00:06.0</span><span class="event-category action">ACTION</span><strong>Save changes clicked</strong><small>EV0003</small></button>
-        <button class="evidence-event highlighted" type="button" data-preview-event="500"><span class="event-time">00:06.3</span><span class="event-category failure">500</span><strong>POST /api/profile</strong><small>EV0004 · Network failure</small></button>
-        <button class="evidence-event" type="button" data-preview-event="error"><span class="event-time">00:06.5</span><span class="event-category console">LOG</span><strong>Request failed</strong><small>EV0005 · Console error</small></button>
-        <div class="evidence-message"><svg class="icon"><use href="#icon-search"/></svg> Click an event to inspect its recorded moment.</div>
+        <div class="evidence-heading"><strong>Evidence timeline</strong><span>3 key events</span></div>
+        <div class="evidence-session-meta"><span><i></i> CAPTURED EVENTS</span><span>TIME</span></div>
+        <button class="evidence-event" type="button" data-preview-event="click"><span class="event-time">00:06.0</span><span class="event-category action">ACTION</span><strong>Save changes clicked</strong><small>EV0003 · UI interaction</small></button>
+        <button class="evidence-event highlighted" type="button" data-preview-event="500"><span class="event-time">00:06.3</span><span class="event-category failure">500</span><strong>POST /api/profile</strong><small>EV0004 · Request failed</small></button>
+        <button class="evidence-event" type="button" data-preview-event="error"><span class="event-time">00:06.5</span><span class="event-category console">ERROR</span><strong>Request failed</strong><small>EV0005 · Console message</small></button>
+        <div class="evidence-insight"><span><svg class="icon"><use href="#icon-search"/></svg> EVIDENCE INSIGHT</span><p id="hero-evidence-insight">A profile save request returned HTTP 500 at 00:06.3, shortly after the Save changes action.</p><small>Observed events, not an inferred root cause.</small></div>
        </div>
       </div>
-      <div class="product-bottom"><span><i></i> Evidence retained from the sample test</span><a href="/app.html?demo=1">Explore the real Studio <svg class="icon"><use href="#icon-arrow"/></svg></a></div>
+      <div class="product-bottom"><span><svg class="icon"><use href="#icon-shield"/></svg> Local-first. Nothing shared automatically.</span><a href="/app.html?demo=1">Open the interactive Studio demo <svg class="icon"><use href="#icon-arrow"/></svg></a></div>
      </div>
     </div>
+    <div class="hero-demo-caption"><span><svg class="icon"><use href="#icon-shield"/></svg> Fictional session for demonstration</span><span>TraceCue Studio preview</span></div>
    </div>
   </section>
   <section class="statement frame"><span class="mini-kicker">THE DIFFERENCE</span><p>“It broke on my machine” isn't enough. <strong>TraceCue keeps the context that comes next.</strong></p></section>
   <section class="showcase frame" id="what-it-does">
+   <div class="showcase-sticky">
    <div class="section-heading centered"><span class="mini-kicker">FROM MOMENT TO EXPLANATION</span><h2>Everything around the issue,<br>in one place.</h2><p>Not another form to fill out. The evidence is already there when you need it.</p></div>
    <div class="feature-shell">
     <div class="feature-rail" role="tablist" aria-label="Explore TraceCue capabilities">
@@ -116,14 +138,25 @@
      </div>
     </div>
    </div>
-   <div class="feature-step-indicator"><span>Choose a feature to explore</span><span id="feature-pagination">01 / 04</span></div>
+   <div class="feature-step-indicator"><span>Click an icon or scroll to explore</span><span id="feature-pagination">01 / 04</span></div>
+   </div>
   </section>
   <section class="steps-section frame" id="how-it-works">
    <div class="section-heading split-heading"><div><span class="mini-kicker">SIMPLICITY, BY DESIGN</span><h2>From a failed action<br>to a useful report.</h2></div><p>Keep doing your job. TraceCue handles the context, then lets you decide what to share.</p></div>
+
    <div class="steps-grid">
-    <article class="step-card"><span class="step-number">01</span><div class="step-illustration step-first"><div class="mini-rec"><i></i> RECORDING <span>02:41</span></div><div class="mini-track"><span></span><span></span><b></b><span></span><span></span><i></i></div></div><h3>Record the session</h3><p>Start once on a page you're authorized to test. Keep the full browser recording.</p></article>
-    <article class="step-card"><span class="step-number">02</span><div class="step-illustration step-second"><div class="mini-issue"><div><span>ISSUE MARKED</span><strong>Profile save failed</strong></div><span class="mini-flag"><svg class="icon"><use href="#icon-flag"/></svg></span></div><div class="mini-range"><span>−30 seconds</span><span>+5 seconds</span></div></div><h3>Mark what happened</h3><p>Name the failure, adjust its clip, and keep the related console and network evidence.</p></article>
-    <article class="step-card"><span class="step-number">03</span><div class="step-illustration step-third"><div class="mini-report"><div><span class="mini-check"><svg class="icon"><use href="#icon-check"/></svg></span><strong>Issue ready for review</strong></div><span>Video clip</span><span>HTTP 500 · EV0004</span><span>Tester notes</span></div></div><h3>Investigate and share</h3><p>Query the logs, review AI suggestions, and hand off a report backed by captured facts.</p></article>
+    <article class="step-card">
+     <div class="step-illustration step-first"><div class="step-appbar"><span><svg class="icon"><use href="#icon-record"/></svg> TraceCue Companion</span><i></i></div><div class="step-rec-banner"><span><i></i> RECORDING IN PROGRESS</span><strong>02:41</strong></div><div class="step-visual-window"><div class="step-visual-top"><span>Checkout — exploratory test</span><small>browser tab</small></div><div class="step-visual-lines"><b></b><b></b><b></b></div><div class="step-visual-action">Continue to payment <svg class="icon"><use href="#icon-arrow"/></svg></div></div><div class="step-capture-trail"><span></span><i></i><span></span><b></b><span></span></div></div>
+     <div class="step-caption"><span class="step-number">STEP 01</span><h3>Record what happened.</h3><p>Start once on an authorized browser tab. Keep the full session, including the moments before an issue.</p></div>
+    </article>
+    <article class="step-card">
+     <div class="step-illustration step-second"><div class="step-appbar"><span><svg class="icon"><use href="#icon-flag"/></svg> Issue markers</span><i></i></div><div class="step-issue-card"><span>ISSUE 01 · 01:16.4</span><strong>Profile save failed</strong><p>Mark the exact moment without stopping the session.</p></div><div class="step-range-labels"><span>00:46</span><span>01:16</span><span>01:21</span></div><div class="step-range-track"><div></div><i></i><b></b></div><div class="step-range-pills"><span>-30 sec</span><span>+5 sec</span></div></div>
+     <div class="step-caption"><span class="step-number">STEP 02</span><h3>Mark the failure.</h3><p>Save the moment, edit the clip boundaries, and keep related network and console evidence together.</p></div>
+    </article>
+    <article class="step-card">
+     <div class="step-illustration step-third"><div class="step-appbar"><span><svg class="icon"><use href="#icon-report"/></svg> Engineering handoff</span><i></i></div><div class="step-report-banner"><span><svg class="icon"><use href="#icon-check"/></svg></span><div><strong>Issue ready for review</strong><small>Human-reviewed draft</small></div></div><div class="step-report-rows"><span><svg class="icon"><use href="#icon-play"/></svg> Focused recording <b>Attached</b></span><span><svg class="icon"><use href="#icon-terminal"/></svg> POST /api/profile <b>HTTP 500</b></span><span><svg class="icon"><use href="#icon-report"/></svg> Reproduction details <b>Included</b></span></div><div class="step-share-action">Review and export <svg class="icon"><use href="#icon-arrow"/></svg></div></div>
+     <div class="step-caption"><span class="step-number">STEP 03</span><h3>Share evidence, not guesses.</h3><p>Investigate the signals, verify suggested explanations, and hand engineering a report with context.</p></div>
+    </article>
    </div>
   </section>
   <section class="sandbox frame" id="sandbox">
@@ -154,17 +187,21 @@
    <div class="install-note"><span class="note-dot"></span> Chrome Web Store listing not yet available · No account needed for the demo</div>
   </section>
  </main>
- <footer class="footer-outer">
-  <div class="footer-panel frame">
-   <div class="footer-trail" aria-hidden="true">
-    <svg viewBox="0 0 1100 250" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="trailGradient" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c7f1de"/><stop offset=".47" stop-color="#75c8ac"/><stop offset="1" stop-color="#e7f5ed"/></linearGradient></defs><path d="M-30 215 C120 215 130 75 310 75 S540 205 690 165 865 46 1130 46" stroke="url(#trailGradient)" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="4 9"/><circle cx="310" cy="75" r="9" fill="#b9e9d2" stroke="#1a7565" stroke-width="4"/><circle cx="690" cy="165" r="9" fill="#b9e9d2" stroke="#1a7565" stroke-width="4"/><circle cx="940" cy="58" r="9" fill="#b9e9d2" stroke="#1a7565" stroke-width="4"/></svg>
-    <div class="trail-label first">CAPTURE <span>01</span></div><div class="trail-label second">TRACE <span>02</span></div><div class="trail-label third">EXPLAIN <span>03</span></div>
-   </div>
-   <div class="footer-card">
-    <div class="footer-top"><div><strong>Follow the signal.</strong><p>Better evidence makes better software.</p></div><a class="footer-top-link" href="/app.html?demo=1">Open Studio <svg class="icon"><use href="#icon-arrow"/></svg></a></div>
-    <div class="footer-links"><div><span>EXPLORE</span><a href="#what-it-does">What it does</a><a href="#how-it-works">How it works</a><a href="#sandbox">Try the demo</a></div><div><span>RESOURCES</span><a href="/privacy.html">Privacy</a><a href="https://github.com/victorkay97/TraceCue" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/victorkay97/TraceCue/blob/feat/tracecue-foundation/docs/INSTALL.md" target="_blank" rel="noopener noreferrer">Install guide</a></div></div>
-    <div class="giant-wordmark" aria-label="TraceCue">TraceCue<span>.</span></div>
-    <div class="footer-bottom"><span>© 2026 TraceCue</span><span>Local-first QA companion · Development preview</span></div>
+
+ <footer class="footer-outer" aria-label="Footer">
+  <div class="footer-landscape">
+   <div class="footer-landscape-sky" aria-hidden="true"></div>
+   <div class="footer-panel frame">
+    <div class="footer-card">
+     <div class="footer-top"><div><span class="mini-kicker">EVERY BUG HAS A TRAIL</span><strong>Make the next issue easier to solve.</strong><p>Capture the context. Follow the evidence. Share what matters.</p></div><a class="button button-primary" href="/app.html?demo=1">Try TraceCue <svg class="icon"><use href="#icon-arrow"/></svg></a></div>
+     <div class="footer-links">
+      <div class="footer-brand"><span class="wordmark"><span class="brand-symbol small"><svg class="brand-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h6v6h6"/><path d="M6 6v12h7"/><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="12" r="2.4"/><circle cx="13" cy="18" r="2.4"/></svg></span>TraceCue</span><p>The QA companion for bugs that need more than a screenshot.</p></div>
+      <div><span>EXPLORE</span><a href="#what-it-does">What it does</a><a href="#how-it-works">How it works</a><a href="#sandbox">Try a sample</a></div>
+      <div><span>RESOURCES</span><a href="/privacy.html">Privacy</a><a href="https://github.com/victorkay97/TraceCue" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/victorkay97/TraceCue/blob/feat/tracecue-foundation/docs/INSTALL.md" target="_blank" rel="noopener noreferrer">Developer install</a></div>
+     </div>
+     <div class="giant-wordmark" aria-label="TraceCue">TraceCue<span>.</span></div>
+     <div class="footer-bottom"><span>© 2026 TraceCue</span><span>Local-first QA companion · Developer preview</span></div>
+    </div>
    </div>
   </div>
  </footer>
