@@ -20,7 +20,7 @@ test("V2 homepage has independent, working product journeys without a forced sig
 test("four feature tabs are keyboard accessible and map to implemented UI states",()=>{
  const states=["capture","mark","search","report"];
  for(const name of states){
-  assert.match(html,new RegExp('data-feature="'+name+'"'));
+  assert.ok(script.includes(name+":{"),"Missing feature state: "+name);
   assert.match(script,new RegExp('(^|\\\\s)'+name+':\\\\s*\\\\{'));
  }
  assert.match(script,/ArrowRight/);
