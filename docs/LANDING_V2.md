@@ -39,3 +39,10 @@ Run \`npm test\` in the repository root and \`npm --prefix studio run build\`. T
 ## Measured parity refinement — 19 November 2026
 
 The landing now uses the supplied HI Playground audit as a geometric reference, not a source of branding or copied content. Desktop layout: 1200px max container with 64px insets, 72px header, 30/36px Geist 600 hero, 28px CTAs with 12/16px labels, 48px showcase icons and 16/24px feature titles. Below 1024px: 52px header, 16px insets, 18/21.6px hero, accessible mobile navigation drawer, scroll-snap example cards and arrow-key pagination. Body copy continues to use Inter, and TraceCue's green/teal accent remains distinct from Playground's purple. The product preview is simplified by hiding duplicated counters/recent labels and foregrounding captured evidence. The fictional playback, sample evidence search, privacy and installation flows remain unchanged. Runtime screenshot parity and interactive verification remain outstanding.
+
+
+## Hero and footer refinement (19 November 2026)
+
+At desktop widths **1160px and up**, the existing hero introduction is exposed as CSS grid contents: the left column holds the actual TraceCue product example while the supporting paragraph sits beside it, vertically centered on the right, below the headline. Narrower layouts retain the stacked/reference-safe structure to protect the interactive recording/evidence preview's minimum legibility.
+
+The illustrated background footer image is replaced with a **real, free-to-use Unsplash photograph** of a development workspace by **Ilias Haddad**, photo [6fPimawrebk](https://unsplash.com/photos/a-computer-desk-with-two-monitors-and-a-keyboard-6fPimawrebk), served through Unsplash's photo CDN. A restrained dark overlay preserves the white footer card's prominence and a visible credit links to the photographer. The original vector remains in source history but is no longer used as the footer background. Photo delivery currently requires access to images.unsplash.com; the fallback is a dark solid color.
